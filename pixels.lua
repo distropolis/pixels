@@ -430,6 +430,7 @@ local wordcol1 = 0
 local wordcol2 = 2
 local wordcol3 = 15
 local piccount = 0
+local colora = 0
 
 
 --Notes
@@ -3019,81 +3020,50 @@ function style(q)
     end
   end
   if (q == 6) then
+    --top
     width = 2
-    color = 127
+    color = colora
     startpos = 0
-    endpos = 127
-    for y=0, 34 do
+    endpos = 128
+    for y=0, 32 do
       for x=startpos,endpos do
         pixCol[x][y] = color
         screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 16))
+        screen.level(math.floor((pixCol[x][y] / 127) * 15))
         screen.fill(0,0,0)
       end
       color = color - 4
       if (color < 0) then
-        color = 128
+        color = 127
       end
       endpos = endpos - 2
       startpos = startpos + 2
     end
-    color = 0
+    --bottom
+    color = colora
     startpos = 64
     endpos = 64
     for y=32, 64 do
       for x=startpos,endpos do
         pixCol[x][y] = color
         screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 16))
+        screen.level(math.floor((pixCol[x][y] / 127) * 15))
         screen.fill(0,0,0)
       end
       color = color + 4
-      if (color > 128) then
+      if (color > 127) then
         color = 0
       end
       endpos = endpos + 2
       startpos = startpos - 2
     end
-    color = 128
-    startpos = 0
+    
+    --left
+    color = colora
+    startpos = 1
     endpos = 64
-    for x=0, 62 do
+    for x=0, 64 do
       for y=math.floor(startpos),math.floor(endpos) do
-        pixCol[x][y] = color
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 16))
-        screen.fill(0,0,0)
-      end
-      color = color - 2
-      if (color > 128) then
-        color = 0
-      end
-      endpos = endpos - .5
-      startpos = startpos + .5
-    end
-    flip = 0 
-    color = 0
-    startpos = 32
-    endpos = 32
-    for x=63, 127 do
-      for y=math.floor(startpos),math.floor(endpos) do
-        pixCol[x][y] = color
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 16))
-        screen.fill(0,0,0)
-      end
-      color = color + 2
-      if (color > 128) then
-        color = 0
-      end
-      endpos = endpos + .5
-      startpos = startpos - .5
-    end
-  end  
-  if (q == 7) then
-    color = 127
-    for y=0,64 do
-      for x=0,128 do
         pixCol[x][y] = color
         screen.pixel(x,y)
         screen.level(math.floor((pixCol[x][y] / 127) * 15))
@@ -3103,8 +3073,62 @@ function style(q)
       if (color < 0) then
         color = 127
       end
+      endpos = endpos - .5
+      startpos = startpos + .5
     end
-    color = 0
+    
+    --right
+    flip = 0 
+    color = colora
+    startpos = 33
+    endpos = 32
+    for x=64, 127 do
+      for y=math.floor(startpos),math.floor(endpos) do
+        pixCol[x][y] = color
+        screen.pixel(x,y)
+        screen.level(math.floor((pixCol[x][y] / 127) * 15))
+        screen.fill(0,0,0)
+      end
+      color = color + 2
+      if (color > 127) then
+        color = 0
+      end
+      endpos = endpos + .5
+      startpos = startpos - .5
+    end
+    colora = colora - 8
+    if (colora < 0) then
+      colora = 127 + colora
+    end
+  end  
+  if (q == 7) then
+    basecol = math.random(0,127)
+    color = math.random(1,15) * 8 - 1
+    for y=0,64 do
+      width = 4
+      for x=0,128 do
+        if(width < 4) then
+          pixCol[x][y] = color
+          screen.pixel(x,y)
+          screen.level(math.floor((pixCol[x][y] / 127) * 15))
+          screen.fill(0,0,0)
+          else
+            pixCol[x][y] = basecol
+            screen.pixel(x,y)
+            screen.level(math.floor((pixCol[x][y] / 127) * 15))
+            screen.fill(0,0,0)
+        end
+        width = width + 1
+        if(width > 7) then
+          width = 0
+        end
+      end
+      color = color - 2
+      if (color < 0) then
+        color = 127
+      end
+    end
+    color = math.random(0,127)
     for x=0,128 do
       width = 4
       for y=0,64 do
@@ -3120,26 +3144,32 @@ function style(q)
         end
       end
       color = color + 1
+      if(color > 127) then
+        color = 0
+      end
     end
+    
   end
   if (q == 8) then
+    factor = math.random(-100,100)
     for x=0,128 do
       for y=0,64 do
-        pixCol[x][y] = math.abs((((math.sin(2 * math.pi * (x/127)))) * 127 + ((math.sin(2 * math.pi * (y/64))) * 64))/1.5)
+        pixCol[x][y] = util.clamp(math.abs((((math.sin(2 * math.pi * (x/127)))) * (127-factor) + ((math.sin(2 * math.pi * (y/63))) * (63-factor)))/1.5),0,127)
         screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 15))
+        screen.level(math.floor((pixCol[x][y] / 127) * 15))
         screen.fill(0,0,0)
       end
     end
   end
   if (q == 9) then
-    col = 0
+    col = math.random(0,127)
+    factor = math.random(4,10)
     xpos = 0
     for x=0,63 do
       for y=0,64 do
         pixCol[xpos][y] = col
         pixCol[xpos+1][y] = col
-        col = col + 7
+        col = col + factor
         if (col > 127) then
           col = 0
         end
@@ -3212,6 +3242,8 @@ function style(q)
   end  
   if (q == 12) then
     col = 0
+    factor = math.random(1,7)
+    factor2 = math.random(1,7)
     top = 127
     bottom = 0
     up = 1
@@ -3222,10 +3254,10 @@ function style(q)
         if (col > top) then
           col = bottom
           if (up == 1) then
-            top = top - 1
+            top = top - factor
           end
           if(up == 0) then
-            bottom = bottom + 1
+            bottom = bottom + factor2
           end
           if(top < 64) then
             top = 127
@@ -3263,9 +3295,11 @@ function style(q)
     end
   end
   if (q == 14) then
+    factor = math.random(10,100)
+    factor2 = math.random(60,120)
     for x=0,128 do
       for y=0,64 do
-        pixCol[x][y] = math.abs(math.floor(math.sin((x-12.5)/100*math.pi) *80 + math.sin(y/63*math.pi) * 48))
+        pixCol[x][y] = util.clamp(math.abs(math.floor(math.sin((x-12.5)/100*math.pi) * factor2 + math.sin(y/63*math.pi) * factor)),0,127)
         screen.pixel(x,y)
         screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
         screen.fill(0,0,0)
@@ -3273,9 +3307,10 @@ function style(q)
     end
   end
   if (q == 15) then
+    factor = math.random(10,100)/100
     for y=0,64 do
       for x=0,128 do
-        pixCol[x][y] = math.floor(math.abs((x+y)/127 * (128-y/.45)))
+        pixCol[x][y] = util.clamp(math.floor(math.abs((x+y)/127 * (128-y/factor))),0,127)
         screen.pixel(x,y)
         screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
         screen.fill(0,0,0)
