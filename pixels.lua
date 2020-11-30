@@ -588,7 +588,7 @@ function init()
   connect()
   engine.release(release[1])
   engine.amp(amp[1]/100)
-  engine.cutoff(20000)
+  --engine.cutoff(20000)
   engine.pw(pw[1]/100)
   for x=0,128 do
     pixCol[x] = {}     -- create a new row
