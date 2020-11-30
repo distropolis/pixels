@@ -104,10 +104,12 @@
 
 --local start = 0
 
+-- Please forgive me my coding sins. I know not what I do ...
+
 local music = require 'musicutil'
 
 --engine
-engine.name = 'PolyPerc'
+engine.name = 'Thebangs'
 local temprel = 20
 local temppw = 50
 local tempamp = 50
@@ -154,7 +156,6 @@ local key5 = 0
 local key6 = 0
 
 --Params
--- pixX, pixY, pixDX, pixDY, stepdiv, numpix,trigprob,styleselect, tempo, low, octaves, mscale, midiVEL, midiCH, release, pan, pw, amp
 savea = paramset.new()
 savea:add_number("pixX1")
 savea:add_number("pixX2")
