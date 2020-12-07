@@ -33,6 +33,16 @@
 -- key 2 = HOLD : ALT
 -- key 3 = play/stop
 --
+-- HINT! 
+-- when changing the direction
+-- of a pixel (holding k2 and
+-- turning e1) you can control 
+-- a pixel while it is moving!
+-- when set to about 3:00,
+-- the wayfinder will become
+-- a circle, indicating that 
+-- pixel has stopped.
+--
 -- 
 -- landscape screen
 --
@@ -55,7 +65,7 @@
 --
 -- HINT!
 -- going below C0 on the root
---setting will allow you to 
+-- setting will allow you to 
 -- manually control the root
 -- note with an external MIDI
 -- keyboard.
@@ -68,26 +78,28 @@
 -- midi velocity and midi channel.
 -- only need one pixel? ok ... 
 -- fine, but it could be lonely 
--- out there
+-- out there.
 --
 -- encoder 1 = select option
 -- encoder 2 = adjust option
 -- key 1 = HOLD : exit menu 
--- key 3 = confirm selection
+-- key 3 = confirm selection of
+--       initial state & number
+--       of pixels.
 --
 -- HINT! 
 -- going below 0 on midi velocity
 -- will get you random numbers!
 --
--- synth screen
+-- synth I screen
 --
 -- make music without a 
 -- midi instrument? ok. 
--- here are the settings for the 
--- built-in synth engine. 
--- release, pulse width,
+-- here is page one of the 
+-- settings for the built-in 
+-- synth engine. attack, release, 
 -- amp, and pan. values
--- below 0 on rel, pw & amp
+-- below 0 on atk, rel & amp
 -- will generate random 
 -- numbers. values of pan 
 -- below -50 and above 50
@@ -97,10 +109,33 @@
 -- encoder 2 = adjust option
 -- key 1 = HOLD : exit menu 
 --
+-- synth II screen
 --
+-- need even more control of
+-- the built in synth params?
+-- here you go! change the 
+-- synth algorithm, and other
+-- parameters here.
+-- 
+--
+-- encoder 1 = select option
+-- encoder 2 = adjust option
+-- key 1 = HOLD : exit menu 
+--
+-- HINT!
+-- the engine supplied with
+-- pixels (The Bangs) has 8 
+-- different synth types with
+-- varying parameters based on 
+-- their type. twiddle knobs
+-- and explore sounds.
+--
+--        
 -- S E C R E T M O D E?
 --
 -- ?
+-- thanks to @zebra for 
+-- the bangs engine
 
 --local start = 0
 
@@ -109,16 +144,25 @@
 local music = require 'musicutil'
 
 --engine
-engine.name = 'Thebangs'
+engine.name = 'Pixelbangs'
+local temptempsynth = 1
+local tempsynth = {1,1,1,1,1,1}
+local tempsynthname = {"sq","sq1","sq2","flp","ffb","rez","kex","kln"}
+local synths = {"square","square_mod1","square_mod2","sinfmlp","sinfb","reznoise","klangexp","klanglin"}
 local temprel = 20
 local temppw = 50
 local tempamp = 50
 local temppan = 50
+local tempmod2 = 1
+local tempattack = 0
+local temphz2 = 100
 local pan = {50,50,50,50,50,50}
 local release = {20,20,20,20,20,20}
 local pw = {50,50,50,50,50,50}
 local amp = {50,50,50,50,50,50}
-
+local mod2 = {1,1,1,1,1,1}
+local attack = {0,0,0,0,0,0}
+local hz2 = {60,60,60,60,60,60}
 
 --Logic
 local drawing = 0
@@ -157,6 +201,12 @@ local key6 = 0
 
 --Params
 savea = paramset.new()
+savea:add_number("wayfinder1")
+savea:add_number("wayfinder2")
+savea:add_number("wayfinder3")
+savea:add_number("wayfinder4")
+savea:add_number("wayfinder5")
+savea:add_number("wayfinder6")
 savea:add_number("pixX1")
 savea:add_number("pixX2")
 savea:add_number("pixX3")
@@ -227,6 +277,24 @@ savea:add_number("release3")
 savea:add_number("release4")
 savea:add_number("release5")
 savea:add_number("release6")
+savea:add_number("attack1")
+savea:add_number("attack2")
+savea:add_number("attack3")
+savea:add_number("attack4")
+savea:add_number("attack5")
+savea:add_number("attack6")
+savea:add_number("mod21")
+savea:add_number("mod22")
+savea:add_number("mod23")
+savea:add_number("mod24")
+savea:add_number("mod25")
+savea:add_number("mod26")
+savea:add_number("hz21")
+savea:add_number("hz22")
+savea:add_number("hz23")
+savea:add_number("hz24")
+savea:add_number("hz25")
+savea:add_number("hz26")
 savea:add_number("pw1")
 savea:add_number("pw2")
 savea:add_number("pw3")
@@ -245,7 +313,19 @@ savea:add_number("pan3")
 savea:add_number("pan4")
 savea:add_number("pan5")
 savea:add_number("pan6")
+savea:add_number("tempsynth1")
+savea:add_number("tempsynth2")
+savea:add_number("tempsynth3")
+savea:add_number("tempsynth4")
+savea:add_number("tempsynth5")
+savea:add_number("tempsynth6")
 saveb = paramset.new()
+saveb:add_number("wayfinder1")
+saveb:add_number("wayfinder2")
+saveb:add_number("wayfinder3")
+saveb:add_number("wayfinder4")
+saveb:add_number("wayfinder5")
+saveb:add_number("wayfinder6")
 saveb:add_number("pixX1")
 saveb:add_number("pixX2")
 saveb:add_number("pixX3")
@@ -316,12 +396,30 @@ saveb:add_number("release3")
 saveb:add_number("release4")
 saveb:add_number("release5")
 saveb:add_number("release6")
+saveb:add_number("attack1")
+saveb:add_number("attack2")
+saveb:add_number("attack3")
+saveb:add_number("attack4")
+saveb:add_number("attack5")
+saveb:add_number("attack6")
 saveb:add_number("pw1")
 saveb:add_number("pw2")
 saveb:add_number("pw3")
 saveb:add_number("pw4")
 saveb:add_number("pw5")
 saveb:add_number("pw6")
+saveb:add_number("mod21")
+saveb:add_number("mod22")
+saveb:add_number("mod23")
+saveb:add_number("mod24")
+saveb:add_number("mod25")
+saveb:add_number("mod26")
+saveb:add_number("hz21")
+saveb:add_number("hz22")
+saveb:add_number("hz23")
+saveb:add_number("hz24")
+saveb:add_number("hz25")
+saveb:add_number("hz26")
 saveb:add_number("amp1")
 saveb:add_number("amp2")
 saveb:add_number("amp3")
@@ -334,7 +432,19 @@ saveb:add_number("pan3")
 saveb:add_number("pan4")
 saveb:add_number("pan5")
 saveb:add_number("pan6")
+saveb:add_number("tempsynth1")
+saveb:add_number("tempsynth2")
+saveb:add_number("tempsynth3")
+saveb:add_number("tempsynth4")
+saveb:add_number("tempsynth5")
+saveb:add_number("tempsynth6")
 savec = paramset.new()
+savec:add_number("wayfinder1")
+savec:add_number("wayfinder2")
+savec:add_number("wayfinder3")
+savec:add_number("wayfinder4")
+savec:add_number("wayfinder5")
+savec:add_number("wayfinder6")
 savec:add_number("pixX1")
 savec:add_number("pixX2")
 savec:add_number("pixX3")
@@ -405,12 +515,30 @@ savec:add_number("release3")
 savec:add_number("release4")
 savec:add_number("release5")
 savec:add_number("release6")
+savec:add_number("attack1")
+savec:add_number("attack2")
+savec:add_number("attack3")
+savec:add_number("attack4")
+savec:add_number("attack5")
+savec:add_number("attack6")
 savec:add_number("pw1")
 savec:add_number("pw2")
 savec:add_number("pw3")
 savec:add_number("pw4")
 savec:add_number("pw5")
 savec:add_number("pw6")
+savec:add_number("mod21")
+savec:add_number("mod22")
+savec:add_number("mod23")
+savec:add_number("mod24")
+savec:add_number("mod25")
+savec:add_number("mod26")
+savec:add_number("hz21")
+savec:add_number("hz22")
+savec:add_number("hz23")
+savec:add_number("hz24")
+savec:add_number("hz25")
+savec:add_number("hz26")
 savec:add_number("amp1")
 savec:add_number("amp2")
 savec:add_number("amp3")
@@ -423,8 +551,19 @@ savec:add_number("pan3")
 savec:add_number("pan4")
 savec:add_number("pan5")
 savec:add_number("pan6")
+savec:add_number("tempsynth1")
+savec:add_number("tempsynth2")
+savec:add_number("tempsynth3")
+savec:add_number("tempsynth4")
+savec:add_number("tempsynth5")
+savec:add_number("tempsynth6")
 
 --Display
+local linetime = 0
+local linex = 63
+local liney = 31
+local linecol = 15
+local angle  = 0
 local wordblast = 0
 local word = "nothing"
 local wordcol1 = 0
@@ -451,11 +590,13 @@ local scale5 = {}
 local scale5 = {}
 
 --Pixels
-local ipixX =  {0,0,0,0,0,0,  63,64,65,63,64,65,  64,48,80,63,65,64,  10,10,10,118,118,118,  0,127,0 ,127, 0,127,   2, 25,50,75,100,125,  63,63,63,63,63,63,  11, 32 , 53, 74, 95, 116,  15, 29, 56, 70, 97, 115}
-local ipixY =  {0,0,0,0,0,0,  31,31,31,32,32,32,  16,32,32,32,32,48,  10,30,50,14 , 34,54 ,  0,0  ,63, 63,32,32 ,   2, 12,24,36,48 , 60,   9,18,27,36,45,54,  32, 32 , 32, 32, 32, 32,   0 ,  0,  0,  0,  0,   0}
-local ipixDX = {0,0,0,0,0,0,  -1, 0, 1,-1, 0, 1,  0 ,-1, 1,0 ,0 ,0 ,   1, 1, 1,-1 ,-1 ,-1 ,  1,-1 ,1 , -1, 1,-1 ,   1, 1 , 1, 1, 1 ,  1,   0, 0, 0, 0, 0, 0,   0,  0,   0,  0,  0,  0,   0 ,  0,  0,  0,  0,   0}
-local ipixDY = {0,0,0,0,0,0,  -1,-1,-1, 1, 1, 1,  -1, 0, 0,0 ,0, 1 ,  0, 0, 0, 0 , 0 , 0,    1,  1,-1, -1, 0, 0 ,   0, 0 , 0, 0, 0 ,  0,   0, 0, 0, 0, 0, 0,   0,  0,   0,  0,  0,  0,   1 ,  1,  1,  1,  1,   1}
-local istepdiv={1,1,1,1,1,1,   8, 9, 10,10,9, 8,  8 ,10,11, 6,10, 9,  12, 7,10, 12,  7,10,   9, 9 ,11, 11,10, 7 ,   11,11,11,12,12 , 10,   7, 8, 9,10,11,12,   9,  9,   9,  9,  9,  9,   13, 11, 12, 8 , 12,  14}
+local wayfinder =  {0,0,0,0,0,0}
+local iwayfinder = {-1,-1,-1,-1,-1,-1,  37,45,52,22,15,7 ,  45,30,0 ,-1,-1,15,   0, 0, 0,30,  30, 30,  7,22 ,52, 37,0 ,30 ,   0, 0 , 0, 0,  0,  0,  -1,-1,-1,-1,-1,-1,   -1, -1,  -1, -1, -1, -1,   15, 15, 15, 15, 15,  15}
+local ipixX =      { 0, 0, 0, 0, 0, 0,  63,64,65,63,64,65,  64,48,80,63,65,64,  10,10,10,118,118,118,  0,127,0 ,127, 0,127,   2, 25,50,75,100,125,  63,63,63,63,63,63,  11, 32 , 53, 74, 95, 116,  15, 29, 56, 70, 97, 115}
+local ipixY =      { 0, 0, 0, 0, 0, 0,  31,31,31,32,32,32,  16,32,32,32,32,48,  10,30,50,14 , 34,54 ,  0,0  ,63, 63,32,32 ,   2, 12,24,36,48 , 60,   9,18,27,36,45,54,  32, 32 , 32, 32, 32, 32,   0 ,  0,  0,  0,  0,   0}
+local ipixDX =     { 0, 0, 0, 0, 0, 0,  -1, 0, 1,-1, 0, 1,  0 ,-1, 1,0 ,0 ,0 ,   1, 1, 1,-1 ,-1 ,-1 ,  1,-1 ,1 , -1, 1,-1 ,   1, 1 , 1, 1, 1 ,  1,   0, 0, 0, 0, 0, 0,   0,  0,   0,  0,  0,  0,   0 ,  0,  0,  0,  0,   0}
+local ipixDY =     { 0, 0, 0, 0, 0, 0,  -1,-1,-1, 1, 1, 1,  -1, 0, 0,0 ,0, 1 ,  0, 0,  0,0 , 0 , 0,    1,  1,-1, -1, 0, 0 ,   0, 0 , 0, 0, 0 ,  0,   0, 0, 0, 0, 0, 0,   0,  0,   0,  0,  0,  0,   1 ,  1,  1,  1,  1,   1}
+local istepdiv=    { 1, 1, 1, 1, 1, 1,   8, 9, 10,10,9, 8,  8 ,10,11, 6,10, 9,  12, 7,10, 12,  7,10,   9, 9 ,11, 11,10, 7 ,   11,11,11,12,12 , 10,   7, 8, 9,10,11,12,   9,  9,   9,  9,  9,  9,   13, 11, 12, 8 , 12,  14}
 local numpix = 6
 local numpixsel = 6
 local thispix = 1
@@ -544,7 +685,6 @@ function miditrans(data)
     local d = midi.to_msg(data)
     if(d.type == "note_off") then
       mute = true
-      print(d.note)
     end
     if(d.type == "note_on") then
       mute = false
@@ -586,12 +726,8 @@ end
 --let's init!
 function init()
   connect()
-  engine.release(release[1])
-  engine.amp(amp[1]/100)
-  --engine.cutoff(20000)
-  engine.pw(pw[1]/100)
   for x=0,128 do
-    pixCol[x] = {}     -- create a new row
+    pixCol[x] = {}  
     for y=0,64 do
       pixCol[x][y] = 0
     end
@@ -658,12 +794,9 @@ function transport(state)
   if (state == 1) then
     startbeat()
     midi_signal_out:start()
-    play(pixCol[pixX[1]][pixY[1]],1)
-    play(pixCol[pixX[2]][pixY[2]],2)
-    play(pixCol[pixX[3]][pixY[3]],3)
-    play(pixCol[pixX[4]][pixY[4]],4)
-    play(pixCol[pixX[5]][pixY[5]],5)
-    play(pixCol[pixX[6]][pixY[6]],6)
+    for a = 1,numpix do
+      play(pixCol[math.floor(pixX[a])][math.floor(pixY[a])],a)
+    end
   end
 end
 
@@ -687,7 +820,7 @@ function move(who)
     end
     if (math.random(0,100) <= trigprob[who]) then
       if (drawing == 0) then
-        play(pixCol[pixX[who]][pixY[who]],who)
+        play(  pixCol[  math.floor(pixX[who])  ]  [  math.floor(pixY[who])  ],  who)
       end
       if (drawing == 1) then
         play(drawcolor[who],who)
@@ -712,6 +845,23 @@ function redraw()
       screen.level(math.floor((pixCol[pixX[1]][pixY[1]] / 127) * 15))
       screen.fill(0,0,0)
     end
+    if(drawing == 0 and linetime > 0 and (pixDX[thispix] ~= 0 or pixDY[thispix]~=0)) then
+      screen.level(linetime)
+      linetime = linetime - 1
+      screen.aa(1)
+      screen.line_width(1)
+      screen.move(pixX[thispix],pixY[thispix])
+      screen.line(pixX[thispix]+linex,pixY[thispix]+liney)
+      screen.close()
+      screen.stroke()
+      else
+        screen.line_width(1)
+        screen.level(linetime)
+        linetime = linetime - 2
+        screen.circle(pixX[thispix],pixY[thispix],linetime/2)
+        screen.close()
+        screen.stroke()
+    end
     for j=1,numpix do
         if(drawing == 0) then
           pulseinc[j] = (16/12) / (60/tempo) /  stepdivamount[stepdiv[j]] 
@@ -725,12 +875,12 @@ function redraw()
           screen.level(size[j])
           screen.fill(0,0,0)
           screen.rect(pixX[j] - math.floor(size[j]/2),pixY[j]-math.floor(size[j] /2),size[j],size[j])
-          screen.level(math.floor((pixCol[pixX[j]][pixY[j]] / 128) * 16))
+          screen.level(math.floor((pixCol[math.floor(pixX[j])][math.floor(pixY[j])] / 128) * 16))
           size[j] = size[j] - 1
           screen.fill(0,0,0)
         end
       if (size[j] == 1 and drawing == 0) then
-        screen.pixel(pixX[j],pixY[j])
+        screen.pixel(math.floor(pixX[j]),math.floor(pixY[j]))
         screen.level(math.floor(pulse[j]))
         screen.fill(0,0,0)
       end
@@ -1207,90 +1357,94 @@ function redraw()
     screen.level(math.floor(wordcol1))
     screen.font_face(1)
     screen.font_size(8)
-    screen.move(100,8)
-    screen.text("synth")
+    screen.move(89,8)
+    screen.text("synth I")
     screen.level(math.floor(wordcol2))
-    screen.move(101,9)
-    screen.text("synth")
+    screen.move(90,9)
+    screen.text("synth I")
     screen.level(math.floor(wordcol3))
-    screen.move(102,10)
-    screen.text("synth")
+    screen.move(91,10)
+    screen.text("synth I")
     screen.level(3)
+    screen.move(5,10)
+    --screen.text("algo:")
+    --screen.move(26,10)
+    --screen.text(synths[tempsynth])
     screen.move(5,20)
-    screen.text("rel ")
+    screen.text("atk ")
     screen.move(37,20)
+    if (attack[1] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(attack[1])
+    end
+    screen.move(52,20)
+    if (attack[2] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(attack[2])
+    end
+    screen.move(67,20)
+    if (attack[3] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(attack[3])
+    end
+    screen.move(82,20)
+    if (attack[4] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(attack[4])
+    end
+    screen.move(97,20)
+    if (attack[5] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(attack[5])
+    end
+    screen.move(112,20)
+    if (attack[6] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(attack[6])
+    end
+    screen.move(5,30)
+    screen.text("rel")
+    screen.move(37,30)
     if (release[1] < 0) then
       screen.text("rnd")
       else
       screen.text(release[1])
     end
-    screen.move(52,20)
+    screen.move(52,30)
     if (release[2] < 0) then
       screen.text("rnd")
       else
       screen.text(release[2])
     end
-    screen.move(67,20)
+    screen.move(67,30)
     if (release[3] < 0) then
       screen.text("rnd")
       else
       screen.text(release[3])
     end
-    screen.move(82,20)
+    screen.move(82,30)
     if (release[4] < 0) then
       screen.text("rnd")
       else
       screen.text(release[4])
     end
-    screen.move(97,20)
+    screen.move(97,30)
     if (release[5] < 0) then
       screen.text("rnd")
       else
       screen.text(release[5])
     end
-    screen.move(112,20)
+    screen.move(112,30)
     if (release[6] < 0) then
       screen.text("rnd")
       else
       screen.text(release[6])
-    end
-    screen.move(5,30)
-    screen.text("pw ")
-    screen.move(37,30)
-    if (pw[1] == 0) then
-      screen.text("rnd")
-      else
-      screen.text(pw[1])
-    end
-    screen.move(52,30)
-    if (pw[2] == 0) then
-      screen.text("rnd")
-      else
-      screen.text(pw[2])
-    end
-    screen.move(67,30)
-    if (pw[3] == 0) then
-      screen.text("rnd")
-      else
-      screen.text(pw[3])
-    end
-    screen.move(82,30)
-    if (pw[4] == 0) then
-      screen.text("rnd")
-      else
-      screen.text(pw[4])
-    end
-    screen.move(97,30)
-    if (pw[5] == 0) then
-      screen.text("rnd")
-      else
-      screen.text(pw[5])
-    end
-    screen.move(112,30)
-    if (pw[6] == 0) then
-      screen.text("rnd")
-      else
-      screen.text(pw[6])
     end
     screen.move(5,40)
     screen.text("amp ")
@@ -1371,20 +1525,81 @@ function redraw()
     if(menupos >= 1 and menupos < 8) then
       screen.level(15)
       screen.move(6,21)
-      screen.text("rel ")
+      screen.text("atk ")
     end
     if(menupos == 1 or menupos == 7) then
       screen.level(15)
       screen.move(38,21)
+      if (attack[1] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(attack[1])
+      end
+    end
+    if(menupos == 2 or menupos == 7) then
+      screen.level(15)
+      screen.move(53,21)
+      if (attack[2] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(attack[2])
+      end
+    end
+    
+    if(menupos == 3 or menupos == 7) then
+      screen.level(15)
+      screen.move(68,21)
+      if (attack[3] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(attack[3])
+      end
+    end
+    if(menupos == 4 or menupos == 7) then
+      screen.level(15)
+      screen.move(83,21)
+      if (attack[4] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(attack[4])
+      end
+    end
+    if(menupos == 5 or menupos == 7) then
+      screen.level(15)
+      screen.move(98,21)
+      if (attack[5] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(attack[5])
+      end
+    end
+    if(menupos == 6 or menupos == 7) then
+      screen.level(15)
+      screen.move(113,21)
+      if (attack[6] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(attack[6])
+      end
+    end
+    
+    if(menupos >= 8 and menupos < 15) then
+      screen.level(15)
+      screen.move(6,31)
+      screen.text("rel ")
+    end
+    if(menupos == 8 or menupos == 14) then
+      screen.level(15)
+      screen.move(38,31)
       if (release[1] < 0) then
         screen.text("rnd")
         else
         screen.text(release[1])
       end
     end
-    if(menupos == 2 or menupos == 7) then
+    if(menupos == 9 or menupos == 14) then
       screen.level(15)
-      screen.move(53,21)
+      screen.move(53,31)
       if (release[2] < 0) then
         screen.text("rnd")
         else
@@ -1392,36 +1607,36 @@ function redraw()
       end
     end
     
-    if(menupos == 3 or menupos == 7) then
+    if(menupos == 10 or menupos == 14) then
       screen.level(15)
-      screen.move(68,21)
+      screen.move(68,31)
       if (release[3] < 0) then
         screen.text("rnd")
         else
         screen.text(release[3])
       end
     end
-    if(menupos == 4 or menupos == 7) then
+    if(menupos == 11 or menupos == 14) then
       screen.level(15)
-      screen.move(83,21)
+      screen.move(83,31)
       if (release[4] < 0) then
         screen.text("rnd")
         else
         screen.text(release[4])
       end
     end
-    if(menupos == 5 or menupos == 7) then
+    if(menupos == 12 or menupos == 14) then
       screen.level(15)
-      screen.move(98,21)
+      screen.move(98,31)
       if (release[5] < 0) then
         screen.text("rnd")
         else
         screen.text(release[5])
       end
     end
-    if(menupos == 6 or menupos == 7) then
+    if(menupos == 13 or menupos == 14) then
       screen.level(15)
-      screen.move(113,21)
+      screen.move(113,31)
       if (release[6] < 0) then
         screen.text("rnd")
         else
@@ -1429,66 +1644,7 @@ function redraw()
       end
     end
     
-    if(menupos > 7 and menupos < 15) then
-      screen.level(15)
-      screen.move(6,31)
-      screen.text("pw ")
-    end
-    if(menupos == 8 or menupos == 14) then
-      screen.level(15)
-      screen.move(38,31)
-      if (pw[1] == 0) then
-        screen.text("rnd")
-        else
-        screen.text(pw[1])
-      end
-    end
-    if(menupos == 9 or menupos == 14) then
-      screen.level(15)
-      screen.move(53,31)
-      if (pw[2] == 0) then
-        screen.text("rnd")
-        else
-        screen.text(pw[2])
-      end
-    end
-    if(menupos == 10 or menupos == 14) then
-      screen.level(15)
-      screen.move(68,31)
-      if (pw[3] == 0) then
-        screen.text("rnd")
-        else
-        screen.text(pw[3])
-      end
-    end
-    if(menupos == 11 or menupos == 14) then
-      screen.level(15)
-      screen.move(83,31)
-      if (pw[4] == 0) then
-        screen.text("rnd")
-        else
-        screen.text(pw[4])
-      end
-    end
-    if(menupos == 12 or menupos == 14) then
-      screen.level(15)
-      screen.move(98,31)
-      if (pw[5] == 0) then
-        screen.text("rnd")
-        else
-        screen.text(pw[5])
-      end
-    end
-    if(menupos == 13 or menupos == 14) then
-      screen.level(15)
-      screen.move(113,31)
-      if (pw[6] == 0) then
-        screen.text("rnd")
-        else
-        screen.text(pw[6])
-      end
-    end
-    
+   
     if(menupos > 14 and menupos < 22) then
       screen.level(15)
       screen.move(6,41)
@@ -1608,12 +1764,384 @@ function redraw()
         screen.text((pan[6]-50))
       end
     end
+  end
+  if (page == 5) then
+    screen.level(math.floor(wordcol1))
+    screen.font_size(8)
+    screen.move(89,8)
+    screen.text("synth II")
+    screen.level(math.floor(wordcol2))
+    screen.move(90,9)
+    screen.text("synth II")
+    screen.level(math.floor(wordcol3))
+    screen.move(91,10)
+    screen.text("synth II")
+    screen.level(3)
+    screen.move(5,20)
+    screen.text("algo")
+    screen.move(26,20)
+    screen.move(5,20)
+    
+    screen.move(37,20)
+    screen.text(tempsynthname[tempsynth[1]])
+    screen.move(52,20)
+    screen.text(tempsynthname[tempsynth[2]])
+    screen.move(67,20)
+    screen.text(tempsynthname[tempsynth[3]])  
+    screen.move(82,20)
+    screen.text(tempsynthname[tempsynth[4]])
+    screen.move(97,20)
+    screen.text(tempsynthname[tempsynth[5]])
+    screen.move(112,20)
+    screen.text(tempsynthname[tempsynth[6]])
+    screen.move(5,30)
+    screen.text("pw/m1")
+    screen.move(37,30)
+    if (pw[1] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(pw[1])
+    end
+    screen.move(52,30)
+    if (pw[2] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(pw[2])
+    end
+    screen.move(67,30)
+    if (pw[3] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(pw[3])
+    end
+    screen.move(82,30)
+    if (pw[4] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(pw[4])
+    end
+    screen.move(97,30)
+    if (pw[5] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(pw[5])
+    end
+    screen.move(112,30)
+    if (pw[6] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(pw[6])
+    end
+    screen.move(5,40)
+    screen.text("gn/m2")
+    screen.move(37,40)
+    if (mod2[1] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(mod2[1])
+    end
+    screen.move(52,40)
+    if (mod2[2] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(mod2[2])
+    end
+    screen.move(67,40)
+    if (mod2[3] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(mod2[3])
+    end
+    screen.move(82,40)
+    if (mod2[4] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(mod2[4])
+    end
+    screen.move(97,40)
+    if (mod2[5] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(mod2[5])
+    end
+    screen.move(112,40)
+    if (mod2[6] < 0) then
+      screen.text("rnd")
+      else
+      screen.text(mod2[6])
+    end
+    screen.move(5,50)
+    screen.text("co/kHz")
+    screen.move(37,50)
+    if(hz2[1] == 0) then
+      screen.text("rnd")
+      else
+      screen.text(hz2[1]/10)
+    end
+    screen.move(52,50)
+    if(hz2[2] == 0) then
+      screen.text("rnd")
+      else
+      screen.text(hz2[2]/10)
+    end
+    screen.move(67,50)
+    if(hz2[3] == 0) then
+      screen.text("rnd")
+      else
+      screen.text(hz2[3]/10)
+    end
+    screen.move(82,50)
+    if(hz2[4] == 0) then
+      screen.text("rnd")
+      else
+      screen.text(hz2[4]/10)
+    end
+    screen.move(97,50)
+    if(hz2[5] == 0) then
+      screen.text("rnd")
+      else
+      screen.text(hz2[5]/10)
+    end
+    screen.move(112,50)
+    if(hz2[6] == 0) then
+      screen.text("rnd")
+      else
+      screen.text(hz2[6]/10)
+    end
+  
+
     
     
     
     
+    
+    
+    
+    if(menupos >= 1 and menupos < 8) then
+      screen.level(15)
+      screen.move(6,21)
+      screen.text("algo")
+    end
+    if(menupos == 1 or menupos == 7) then
+      screen.level(15)
+      screen.move(38,21)
+      screen.text(tempsynthname[tempsynth[1]])
+    end
+    if(menupos == 2 or menupos == 7) then
+      screen.level(15)
+      screen.move(53,21)
+      screen.text(tempsynthname[tempsynth[2]])
+    end
+    if(menupos == 3 or menupos == 7) then
+      screen.level(15)
+      screen.move(68,21)
+      screen.text(tempsynthname[tempsynth[3]])
+    end
+    if(menupos == 4 or menupos == 7) then
+      screen.level(15)
+      screen.move(83,21)
+      screen.text(tempsynthname[tempsynth[4]])
+    end
+    if(menupos == 5 or menupos == 7) then
+      screen.level(15)
+      screen.move(98,21)
+      screen.text(tempsynthname[tempsynth[5]])
+    end
+    if(menupos == 6 or menupos == 7) then
+      screen.level(15)
+      screen.move(113,21)
+      screen.text(tempsynthname[tempsynth[6]])
+    end
+    
+    if(menupos >= 8 and menupos < 15) then
+      screen.level(15)
+      screen.move(6,31)
+      screen.text("pw/m1")
+      
+    end
+    if(menupos == 8 or menupos == 14) then
+      screen.level(15)
+      screen.move(38,31)
+      if (pw[1] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(pw[1])
+      end
+    end
+    if(menupos == 9 or menupos == 14) then
+      screen.level(15)
+      screen.move(53,31)
+      if (pw[2] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(pw[2])
+      end
+    end
+    
+    if(menupos == 10 or menupos == 14) then
+      screen.level(15)
+      screen.move(68,31)
+      if (pw[3] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(pw[3])
+      end
+    end
+    if(menupos == 11 or menupos == 14) then
+      screen.level(15)
+      screen.move(83,31)
+      if (pw[4] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(pw[4])
+      end
+    end
+    if(menupos == 12 or menupos == 14) then
+      screen.level(15)
+      screen.move(98,31)
+      if (pw[5] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(pw[5])
+      end
+    end
+    if(menupos == 13 or menupos == 14) then
+      screen.level(15)
+      screen.move(113,31)
+      if (pw[6] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(pw[6])
+      end
+    end
+    
+    
+        
+    if(menupos >= 15 and menupos < 22) then
+      screen.level(15)
+      screen.move(6,41)
+      screen.text("gn/m2")
+    end
+    if(menupos == 15 or menupos == 21) then
+      screen.level(15)
+      screen.move(38,41)
+      if (mod2[1] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(mod2[1])
+      end
+    end
+    if(menupos == 16 or menupos == 21) then
+      screen.level(15)
+      screen.move(53,41)
+      if (mod2[2] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(mod2[2])
+      end
+    end
+    
+    if(menupos == 17 or menupos == 21) then
+      screen.level(15)
+      screen.move(68,41)
+      if (mod2[3] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(mod2[3])
+      end
+    end
+    if(menupos == 18 or menupos == 21) then
+      screen.level(15)
+      screen.move(83,41)
+      if (mod2[4] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(mod2[4])
+      end
+    end
+    if(menupos == 19 or menupos == 21) then
+      screen.level(15)
+      screen.move(98,41)
+      if (mod2[5] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(mod2[5])
+      end
+    end
+    if(menupos == 20 or menupos == 21) then
+      screen.level(15)
+      screen.move(113,41)
+      if (mod2[6] < 0) then
+        screen.text("rnd")
+        else
+        screen.text(mod2[6])
+      end
+    end
+    
+   
+    if(menupos > 21 and menupos < 29) then
+      screen.level(15)
+      screen.move(6,51)
+      screen.text("co/kHz")
+    end
+    if(menupos == 22 or menupos == 28) then
+      screen.level(15)
+      screen.move(38,51)
+      if(hz2[1] == 0) then
+        screen.text("rnd")
+        else
+        screen.text((hz2[1])/10)
+      end
+    end
+    if(menupos == 23 or menupos == 28) then
+      screen.level(15)
+      screen.move(53,51)
+      if(hz2[2] == 0) then
+        screen.text("rnd")
+        else
+        screen.text(hz2[2]/10)
+      end
+    end
+    if(menupos == 24 or menupos == 28) then
+      screen.level(15)
+      screen.move(68,51)
+      if(hz2[3] == 0) then
+        screen.text("rnd")
+        else
+        screen.text(hz2[3]/10)
+      end
+    end
+    if(menupos == 25 or menupos == 28) then
+      screen.level(15)
+      screen.move(83,51)
+      if(hz2[4] == 0) then
+        screen.text("rnd")
+        else
+        screen.text(hz2[4]/10)
+      end
+    end
+    if(menupos == 26 or menupos == 28) then
+      screen.level(15)
+      screen.move(98,51)
+      if(hz2[5] == 0) then
+        screen.text("rnd")
+        else
+        screen.text(hz2[5]/10)
+      end
+    end
+    if(menupos == 27 or menupos == 28) then
+      screen.level(15)
+      screen.move(113,51)
+      if(hz2[6] == 0) then
+        screen.text("rnd")
+        else
+        screen.text(hz2[6]/10)
+      end
+    end
     
   end
+    
+    
   wordcol1 = wordcol1 + .1
   if (wordcol1 > 5) then
     wordcol1 = 0
@@ -1657,6 +2185,17 @@ function key(n,id)
   if(page ==1) then
     if (n == 2 and id ==1) then
       k2 = 1
+      linetime = 16
+      wordblast = 16
+      word = thispix
+      size[thispix] = 6
+      if(wayfinder[thispix] > -1 and wayfinder[thispix] < 61) then
+        linex = ( (10 * math.cos((6*wayfinder[thispix] * math.pi / 180))))
+        liney = ( (10 * math.sin((6*wayfinder[thispix] * math.pi / 180))))
+      else
+        linex = 0
+        liney = 0
+      end
     end
     if (n == 2 and id ==0) then
       k2 = 0
@@ -1739,6 +2278,7 @@ function key(n,id)
             tempo = savea:get("tempo")
             mscale = savea:get("mscale")
             for a=1,6 do
+              tempsynth[a] = savea:get("tempsynth"..a)
               pixX[a] = savea:get("pixX"..a)
               pixY[a] = savea:get("pixY"..a)
               pixDX[a] = savea:get("pixDX"..a)
@@ -1750,9 +2290,13 @@ function key(n,id)
               midiVEL[a] = savea:get("midiVEL"..a)
               midiCH[a] = savea:get("midiCH"..a)
               release[a] = savea:get("release"..a)
+              attack[a] = savea:get("attack"..a)
               pw[a] = savea:get("pw"..a)
+              mod2[a] = savea:get("mod2"..a)
+              hz2[a] = savea:get("hz2"..a)
               amp[a] = savea:get("amp"..a)
               pan[a] = savea:get("pan"..a)
+              wayfinder[a] = savea:get("wayfinder"..a)
             end
             scale1 = music.generate_scale(low[1],mscale,octaves[1])
             scale2 = music.generate_scale(low[2],mscale,octaves[2])
@@ -1777,6 +2321,7 @@ function key(n,id)
             tempo = saveb:get("tempo")
             mscale = saveb:get("mscale")
             for a=1,6 do
+              tempsynth[a] = saveb:get("tempsynth"..a)
               pixX[a] = saveb:get("pixX"..a)
               pixY[a] = saveb:get("pixY"..a)
               pixDX[a] = saveb:get("pixDX"..a)
@@ -1788,9 +2333,13 @@ function key(n,id)
               midiVEL[a] = saveb:get("midiVEL"..a)
               midiCH[a] = saveb:get("midiCH"..a)
               release[a] = saveb:get("release"..a)
+              attack[a] = saveb:get("attack"..a)
               pw[a] = saveb:get("pw"..a)
+              mod2[a] = saveb:get("mod2"..a)
+              hz2[a] = saveb:get("hz2"..a)
               amp[a] = saveb:get("amp"..a)
               pan[a] = saveb:get("pan"..a)
+              wayfinder[a] = savea:get("wayfinder"..a)
             end
             scale1 = music.generate_scale(low[1],mscale,octaves[1])
             scale2 = music.generate_scale(low[2],mscale,octaves[2])
@@ -1815,6 +2364,7 @@ function key(n,id)
             tempo = savec:get("tempo")
             mscale = savec:get("mscale")
             for a=1,6 do
+              tempsynth[a] = savec:get("tempsynth"..a)
               pixX[a] = savec:get("pixX"..a)
               pixY[a] = savec:get("pixY"..a)
               pixDX[a] = savec:get("pixDX"..a)
@@ -1826,9 +2376,13 @@ function key(n,id)
               midiVEL[a] = savec:get("midiVEL"..a)
               midiCH[a] = savec:get("midiCH"..a)
               release[a] = savec:get("release"..a)
+              attack[a] = savec:get("attack"..a)
               pw[a] = savec:get("pw"..a)
+              mod2[a] = savec:get("mod2"..a)
+              hz2[a] = savec:get("hz2"..a)
               amp[a] = savec:get("amp"..a)
               pan[a] = savec:get("pan"..a)
+              wayfinder[a] = savea:get("wayfinder"..a)
             end
                         scale1 = music.generate_scale(low[1],mscale,octaves[1])
             scale2 = music.generate_scale(low[2],mscale,octaves[2])
@@ -1920,12 +2474,30 @@ function key(n,id)
           savea:set("release4",release[4])
           savea:set("release5",release[5])
           savea:set("release6",release[6])
+          savea:set("attack1",attack[1])
+          savea:set("attack2",attack[2])
+          savea:set("attack3",attack[3])
+          savea:set("attack4",attack[4])
+          savea:set("attack5",attack[5])
+          savea:set("attack6",attack[6])
           savea:set("pw1",pw[1])
           savea:set("pw2",pw[2])
           savea:set("pw3",pw[3])
           savea:set("pw4",pw[4])
           savea:set("pw5",pw[5])
           savea:set("pw6",pw[6])
+          savea:set("mod21",mod2[1])
+          savea:set("mod22",mod2[2])
+          savea:set("mod23",mod2[3])
+          savea:set("mod24",mod2[4])
+          savea:set("mod25",mod2[5])
+          savea:set("mod26",mod2[6])
+          savea:set("hz21",hz2[1])
+          savea:set("hz22",hz2[2])
+          savea:set("hz23",hz2[3])
+          savea:set("hz24",hz2[4])
+          savea:set("hz25",hz2[5])
+          savea:set("hz26",hz2[6])
           savea:set("amp1",amp[1])
           savea:set("amp2",amp[2])
           savea:set("amp3",amp[3])
@@ -1938,6 +2510,18 @@ function key(n,id)
           savea:set("pan4",pan[4])
           savea:set("pan5",pan[5])
           savea:set("pan6",pan[6])
+          savea:set("tempsynth1",tempsynth[1])
+          savea:set("tempsynth2",tempsynth[2])
+          savea:set("tempsynth3",tempsynth[3])
+          savea:set("tempsynth4",tempsynth[4])
+          savea:set("tempsynth5",tempsynth[5])
+          savea:set("tempsynth6",tempsynth[6])
+          savea:set("wayfinder1",wayfinder[1])
+          savea:set("wayfinder2",wayfinder[2])
+          savea:set("wayfinder3",wayfinder[3])
+          savea:set("wayfinder4",wayfinder[4])
+          savea:set("wayfinder5",wayfinder[5])
+          savea:set("wayfinder6",wayfinder[6])
           savea:write("/home/we/dust/code/pixels/savea.pset")
         end
         if(savetext == 2) then
@@ -2013,12 +2597,30 @@ function key(n,id)
           saveb:set("release4",release[4])
           saveb:set("release5",release[5])
           saveb:set("release6",release[6])
+          saveb:set("attack1",attack[1])
+          saveb:set("attack2",attack[2])
+          saveb:set("attack3",attack[3])
+          saveb:set("attack4",attack[4])
+          saveb:set("attack5",attack[5])
+          saveb:set("attack6",attack[6])
           saveb:set("pw1",pw[1])
           saveb:set("pw2",pw[2])
           saveb:set("pw3",pw[3])
           saveb:set("pw4",pw[4])
           saveb:set("pw5",pw[5])
           saveb:set("pw6",pw[6])
+          saveb:set("mod21",mod2[1])
+          saveb:set("mod22",mod2[2])
+          saveb:set("mod23",mod2[3])
+          saveb:set("mod24",mod2[4])
+          saveb:set("mod25",mod2[5])
+          saveb:set("mod26",mod2[6])
+          saveb:set("hz21",hz2[1])
+          saveb:set("hz22",hz2[2])
+          saveb:set("hz23",hz2[3])
+          saveb:set("hz24",hz2[4])
+          saveb:set("hz25",hz2[5])
+          saveb:set("hz26",hz2[6])
           saveb:set("amp1",amp[1])
           saveb:set("amp2",amp[2])
           saveb:set("amp3",amp[3])
@@ -2031,6 +2633,18 @@ function key(n,id)
           saveb:set("pan4",pan[4])
           saveb:set("pan5",pan[5])
           saveb:set("pan6",pan[6])
+          saveb:set("tempsynth1",tempsynth[1])
+          saveb:set("tempsynth2",tempsynth[2])
+          saveb:set("tempsynth3",tempsynth[3])
+          saveb:set("tempsynth4",tempsynth[4])
+          saveb:set("tempsynth5",tempsynth[5])
+          saveb:set("tempsynth6",tempsynth[6])
+          saveb:set("wayfinder1",wayfinder[1])
+          saveb:set("wayfinder2",wayfinder[2])
+          saveb:set("wayfinder3",wayfinder[3])
+          saveb:set("wayfinder4",wayfinder[4])
+          saveb:set("wayfinder5",wayfinder[5])
+          saveb:set("wayfinder6",wayfinder[6])
           saveb:write("/home/we/dust/code/pixels/saveb.pset")
         end
         if(savetext == 3) then
@@ -2106,12 +2720,30 @@ function key(n,id)
           savec:set("release4",release[4])
           savec:set("release5",release[5])
           savec:set("release6",release[6])
+          savec:set("attack1",attack[1])
+          savec:set("attack2",attack[2])
+          savec:set("attack3",attack[3])
+          savec:set("attack4",attack[4])
+          savec:set("attack5",attack[5])
+          savec:set("attack6",attack[6])
           savec:set("pw1",pw[1])
           savec:set("pw2",pw[2])
           savec:set("pw3",pw[3])
           savec:set("pw4",pw[4])
           savec:set("pw5",pw[5])
           savec:set("pw6",pw[6])
+          savec:set("mod21",mod2[1])
+          savec:set("mod22",mod2[2])
+          savec:set("mod23",mod2[3])
+          savec:set("mod24",mod2[4])
+          savec:set("mod25",mod2[5])
+          savec:set("mod26",mod2[6])
+          savec:set("hz21",hz2[1])
+          savec:set("hz22",hz2[2])
+          savec:set("hz23",hz2[3])
+          savec:set("hz24",hz2[4])
+          savec:set("hz25",hz2[5])
+          savec:set("hz26",hz2[6])
           savec:set("amp1",amp[1])
           savec:set("amp2",amp[2])
           savec:set("amp3",amp[3])
@@ -2124,6 +2756,18 @@ function key(n,id)
           savec:set("pan4",pan[4])
           savec:set("pan5",pan[5])
           savec:set("pan6",pan[6])
+          savec:set("tempsynth1",tempsynth[1])
+          savec:set("tempsynth2",tempsynth[2])
+          savec:set("tempsynth3",tempsynth[3])
+          savec:set("tempsynth4",tempsynth[4])
+          savec:set("tempsynth5",tempsynth[5])
+          savec:set("tempsynth6",tempsynth[6])
+          savec:set("wayfinder1",wayfinder[1])
+          savec:set("wayfinder2",wayfinder[2])
+          savec:set("wayfinder3",wayfinder[3])
+          savec:set("wayfinder4",wayfinder[4])
+          savec:set("wayfinder5",wayfinder[5])
+          savec:set("wayfinder6",wayfinder[6])
           savec:write("/home/we/dust/code/pixels/savec.pset")
         end
       end
@@ -2212,14 +2856,20 @@ function initialcondition(number)
       pixDX[j] =ipixDX[(number-1)*6 +j] 
       pixDY[j] =ipixDY[(number-1)*6+j]
       stepdiv[j] = istepdiv[(number-1)*6 +j]
+      wayfinder[j] = iwayfinder[(number-1)*6 +j]
+      linex = ( (10 * math.cos((6*wayfinder[j] * math.pi / 180))))
+      liney = ( (10 * math.sin((6*wayfinder[j] * math.pi / 180))))
     end
   end
   if (number == 1) then
     for j=1,6 do
       pixX[j] =math.random(0,127) 
       pixY[j] =math.random(0,63)
-      pixDX[j] =math.random(-1,1) 
-      pixDY[j] =math.random(-1,1)
+      wayfinder[j] = math.random(0,60)
+      linex = ( (10 * math.cos((6*wayfinder[j] * math.pi / 180))))
+      liney = ( (10 * math.sin((6*wayfinder[j] * math.pi / 180))))
+      pixDX[j] =  linex/10
+      pixDY[j] =  liney/10
       stepdiv[j] = math.random(1,#stepdivamount)
     end
   end
@@ -2263,16 +2913,36 @@ end
 function play(note,who)
   oldrange = 127
   actualVEL = midiVEL[who]
+   engine.algoName(synths[tempsynth[who]])
+  attacker = attack[who]/10
+  if(attacker < 0)  then
+    attacker = math.random(1,100)/10
+  end
+  engine.attack(attacker)
   releaser = release[who]/10
   if(releaser < 0) then
     releaser = math.random(1,100)/10
   end
+  factor = 17
+  if(tempsynth[who] > 3) then
+    factor = 100
+  end
+  mod2er = mod2[who]/factor
+  if(mod2er < 0) then
+    mod2er = math.random(0,100)/factor
+  end
+  engine.mod2(mod2er)
   engine.release(releaser)
   pwer = pw[who]/100
-  if(pw[who] == 0) then
+  if(pw[who] < 0) then
     pwer = math.random(0,100)/100
   end
   engine.pw(pwer)
+  hz2er = hz2[who] * 100 
+  if(hz2er == 0) then
+    hz2er = math.random(1,150) * 100
+  end
+  engine.hz2(hz2er)
   amper = amp[who]
   if(amper < 1) then
     amper = math.random(1,100)
@@ -2284,8 +2954,12 @@ function play(note,who)
   end
   engine.pan(panner)
   if(midiVEL[who] == -1) then
-    actualVEL = math.random(0,128)
+    actualVEL = math.random(0,127)
   end
+  
+  
+
+  
   if (who == 1 and (key1 == 0 or key1 == 1 or (key1 == 2 and mute == false))) then
     newrange = scale1[#scale1] - scale1[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale1[1])
@@ -2357,7 +3031,7 @@ end
 --let's look at twiddled knobs
 function enc(n,delta)
   if (n == 1 and menumode == 1) then
-    page = util.clamp(page + delta,2,4)
+    page = util.clamp(page + delta,2,5)
     lastpage = page
     menupos = 1
     numpixsel = numpix
@@ -2400,7 +3074,7 @@ function enc(n,delta)
     if (n == 2 and k2 == 0 and k3 == 0) then
       pixX[thispix] = util.clamp(pixX[thispix] + delta,0,127)
       if(drawing == 0) then
-        play(pixCol[pixX[thispix]][pixY[thispix]],thispix)
+        play(pixCol[  math.floor(pixX[thispix])  ][math.floor(pixY[thispix])],thispix)
         size[thispix] = 6
       end
       if(drawing == 1) then
@@ -2408,62 +3082,49 @@ function enc(n,delta)
       end
     end
     if (n == 2 and k2 == 1 and drawing == 0) then
-      direction[thispix] = util.clamp(direction[thispix] + delta,0,10) 
-      if (direction[thispix] == 0) then
-        direction[thispix] = 9
-      end
-      if (direction[thispix] == 10) then
-        direction[thispix] = 1
-      end
-      if(direction[thispix] == 1) then
-        pixDX[thispix] = 0
-        pixDY[thispix] = -1
-      end
-      if(direction[thispix] == 2) then
-        pixDX[thispix] = 1
-        pixDY[thispix] = -1
-      end
-      if(direction[thispix] == 3) then
-        pixDX[thispix] = 1
-        pixDY[thispix] = 0
-      end
-      if(direction[thispix] == 4) then
-        pixDX[thispix] = 1
-        pixDY[thispix] = 1
-      end
-      if(direction[thispix] == 5) then
-        pixDX[thispix] = 0
-        pixDY[thispix] = 1
-      end
-      if(direction[thispix] == 6) then
-        pixDX[thispix] = -1
-        pixDY[thispix] = 1
-      end
-      if(direction[thispix] == 7) then
-        pixDX[thispix] = -1
-        pixDY[thispix] = 0
-      end
-      if(direction[thispix] == 8) then
-        pixDX[thispix] = -1
-        pixDY[thispix] = -1
-      end
-      if(direction[thispix] == 9) then
+      linetime = 16
+      wayfinder[thispix] = util.clamp(wayfinder[thispix] + delta, -2,62)
+      if(wayfinder[thispix] < 0 or wayfinder[thispix] > 60) then
+        linex = 0
+        liney = 0
         pixDX[thispix] = 0
         pixDY[thispix] = 0
+      else
+        linex = ( (10 * math.cos((6*wayfinder[thispix] * math.pi / 180))))
+        liney = ( (10 * math.sin((6*wayfinder[thispix] * math.pi / 180))))
+        pixDX[thispix] = 1 * linex/10
+        pixDY[thispix] = 1 * liney/10
       end
-      wordblast = 16
-      word = directionname[direction[thispix]]
+      if(wayfinder[thispix] == 62) then
+        wayfinder[thispix] = 0
+      end
+      if(wayfinder[thispix] == -2) then
+        wayfinder[thispix] = 60
+      end
+
     end
     if (n == 3 and k2 == 1 and drawing == 0) then
       thispix = util.clamp(thispix + delta,1,numpix)
       wordblast = 8
       word = thispix
       size[thispix] = 6
+      linetime = 16
+      if(wayfinder[thispix] < 0 or wayfinder[thispix] > 60) then
+        linex = 0
+        liney = 0
+        pixDX[thispix] = 0
+        pixDY[thispix] = 0
+      else
+        linex = ( (10 * math.cos((6*wayfinder[thispix] * math.pi / 180))))
+        liney = ( (10 * math.sin((6*wayfinder[thispix] * math.pi / 180))))
+        pixDX[thispix] = 1 * linex/10
+        pixDY[thispix] = 1 * liney/10
+      end
     end
     if (n == 3 and k2 == 0 and k3 == 0) then
       pixY[thispix] = util.clamp(pixY[thispix] + delta,0,63)
       if(drawing == 0) then
-        play(pixCol[pixX[thispix]][pixY[thispix]],thispix)  
+        play(pixCol[math.floor(pixX[thispix])][math.floor(pixY[thispix])],thispix)  
         size[thispix] = 6
       end
       if (drawing == 1) then
@@ -2822,52 +3483,53 @@ function enc(n,delta)
       lastmenupos = menupos
     end
     if(n == 3) then
+
       if (menupos == 1) then
-        release[1] = util.clamp(release[1]+delta,-1,100)
+        attack[1] = util.clamp(attack[1]+delta,-1,100)
       end
       if (menupos == 2) then
-        release[2] = util.clamp(release[2]+delta,-1,100)
+        attack[2] = util.clamp(attack[2]+delta,-1,100)
       end
       if (menupos == 3) then
-        release[3] = util.clamp(release[3]+delta,-1,100)
+        attack[3] = util.clamp(attack[3]+delta,-1,100)
       end
       if (menupos == 4) then
-        release[4] = util.clamp(release[4]+delta,-1,100)
+        attack[4] = util.clamp(attack[4]+delta,-1,100)
       end
       if (menupos == 5) then
-        release[5] = util.clamp(release[5]+delta,-1,100)
+        attack[5] = util.clamp(attack[5]+delta,-1,100)
       end
       if (menupos == 6) then
-        release[6] = util.clamp(release[6]+delta,-1,100)
+        attack[6] = util.clamp(attack[6]+delta,-1,100)
       end
       if (menupos == 7) then
-        temprel = util.clamp(temprel+delta,-1,100)
+        tempattack = util.clamp(tempattack+delta,-1,100)
         for a=1,6 do
-          release[a]=temprel
+          attack[a]=tempattack
         end
       end
       if (menupos == 8) then
-        pw[1] = util.clamp(pw[1]+delta,0,100)
+        release[1] = util.clamp(release[1]+delta,-1,100)
       end
       if (menupos == 9) then
-        pw[2] = util.clamp(pw[2]+delta,0,100)
+        release[2] = util.clamp(release[2]+delta,-1,100)
       end
       if (menupos == 10) then
-        pw[3] = util.clamp(pw[3]+delta,0,100)
+        release[3] = util.clamp(release[3]+delta,-1,100)
       end
       if (menupos == 11) then
-        pw[4] = util.clamp(pw[4]+delta,0,100)
+        release[4] = util.clamp(release[4]+delta,-1,100)
       end
       if (menupos == 12) then
-        pw[5] = util.clamp(pw[5]+delta,0,100)
+        release[5] = util.clamp(release[5]+delta,-1,100)
       end
       if (menupos == 13) then
-        pw[6] = util.clamp(pw[6]+delta,0,100)
+        release[6] = util.clamp(release[6]+delta,-1,100)
       end
       if (menupos == 14) then
-        temppw = util.clamp(temppw+delta,0,100)
+        temprel = util.clamp(temprel+delta,-1,100)
         for a=1,6 do
-          pw[a]=temppw
+          release[a]=temprel
         end
       end
       if (menupos == 15) then
@@ -2920,6 +3582,113 @@ function enc(n,delta)
       end
     end
   end
+   if (page == 5) then
+    if(n == 2) then
+      menupos = util.clamp(menupos + delta,1,28)
+      lastmenupos = menupos
+    end
+    if(n == 3) then
+      if (menupos == 1) then
+        tempsynth[1] = util.clamp(tempsynth[1]+delta,1,8)
+      end
+      if (menupos == 2) then
+        tempsynth[2] = util.clamp(tempsynth[2]+delta,1,8)
+      end
+      if (menupos == 3) then
+        tempsynth[3] = util.clamp(tempsynth[3]+delta,1,8)
+      end
+      if (menupos == 4) then
+        tempsynth[4] = util.clamp(tempsynth[4]+delta,1,8)
+      end
+      if (menupos == 5) then
+        tempsynth[5] = util.clamp(tempsynth[5]+delta,1,8)
+      end
+      if (menupos == 6) then
+        tempsynth[6] = util.clamp(tempsynth[6]+delta,1,8)
+      end
+      if (menupos == 7) then
+        temptempsynth = util.clamp(temptempsynth+delta,1,8)
+        for a=1,6 do
+          tempsynth[a]=temptempsynth
+        end
+      end
+      
+      if (menupos == 8) then
+        pw[1] = util.clamp(pw[1]+delta,-1,100)
+      end
+      if (menupos == 9) then
+        pw[2] = util.clamp(pw[2]+delta,-1,100)
+      end
+      if (menupos == 10) then
+        pw[3] = util.clamp(pw[3]+delta,-1,100)
+      end
+      if (menupos == 11) then
+        pw[4] = util.clamp(pw[4]+delta,-1,100)
+      end
+      if (menupos == 12) then
+        pw[5] = util.clamp(pw[5]+delta,-1,100)
+      end
+      if (menupos == 13) then
+        pw[6] = util.clamp(pw[6]+delta,-1,100)
+      end
+      if (menupos == 14) then
+        temppw = util.clamp(temppw+delta,-1,100)
+        for a=1,6 do
+          pw[a]=temppw
+        end
+      end
+      
+      
+      if (menupos == 15) then
+        mod2[1] = util.clamp(mod2[1]+delta,-1,100)
+      end
+      if (menupos == 16) then
+        mod2[2] = util.clamp(mod2[2]+delta,-1,100)
+      end
+      if (menupos == 17) then
+        mod2[3] = util.clamp(mod2[3]+delta,-1,100)
+      end
+      if (menupos == 18) then
+        mod2[4] = util.clamp(mod2[4]+delta,-1,100)
+      end
+      if (menupos == 19) then
+        mod2[5] = util.clamp(mod2[5]+delta,-1,100)
+      end
+      if (menupos == 20) then
+        mod2[6] = util.clamp(mod2[6]+delta,-1,100)
+      end
+      if (menupos == 21) then
+        tempmod2 = util.clamp(tempmod2+delta,-1,100)
+        for a=1,6 do
+          mod2[a]=tempmod2
+        end
+      end
+      if (menupos == 22) then
+        hz2[1] = util.clamp(hz2[1]+delta,0,150)
+      end
+      if (menupos == 23) then
+        hz2[2] = util.clamp(hz2[2]+delta,0,150)
+      end
+      if (menupos == 24) then
+        hz2[3] = util.clamp(hz2[3]+delta,0,150)
+      end
+      if (menupos == 25) then
+        hz2[4] = util.clamp(hz2[4]+delta,0,150)
+      end
+      if (menupos == 26) then
+        hz2[5] = util.clamp(hz2[5]+delta,0,150)
+      end
+      if (menupos == 27) then
+        hz2[6] = util.clamp(hz2[6]+delta,0,150)
+      end
+      if (menupos == 28) then
+        temphz2 = util.clamp(temphz2+delta,0,150)
+        for a=1,6 do
+          hz2[a]=temphz2
+        end
+      end
+    end
+  end
 end
   
 --let's set the style of landscape our pixels travel on
@@ -2944,7 +3713,7 @@ function style(q)
         if (temp < 0) then
           temp = 0
         end
-        pixCol[x][y] = temp
+        pixCol[x][y] = util.clamp(temp,0,127)
         if (x == total and x < 128) then
           total = total + sizer[a+1]
           a = a + 1
@@ -2958,9 +3727,9 @@ function style(q)
   if (q == 2) then
     for x=0,128 do
       for y=0,64 do
-        pixCol[x][y] = math.random(1,128)
+        pixCol[x][y] = math.random(0,127)
         screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 16))
+        screen.level(math.floor((pixCol[x][y] / 127) * 15))
         screen.fill(0,0,0)
       end
     end
@@ -2974,7 +3743,7 @@ function style(q)
     position = math.random(1,#col)
     for x=0,128 do
       for y=0,64 do
-        pixCol[x][y] = col[position] +counter
+        pixCol[x][y] = col[position] + counter
         screen.pixel(x,y)
         screen.level(math.floor((pixCol[x][y] / 127) * 15))
         screen.fill(0,0,0)
@@ -2991,9 +3760,9 @@ function style(q)
     factor = math.random(0,1000)
     for x=0,128 do
       for y=0,64 do
-        pixCol[x][y] = math.abs(math.sin(math.pi * ((factor+x)/(8+y))) * 128)
+        pixCol[x][y] = util.clamp(math.abs(math.sin(math.pi * ((factor+x)/(8+y))) * 127),0,127)
         screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 128) * 16))
+        screen.level(math.floor((pixCol[x][y] / 127) * 15))
         screen.fill(0,0,0)
       end
     end
@@ -3005,9 +3774,9 @@ function style(q)
     for y=0,64 do
       for x=0,128 do
       tri = tri + dir * (9+factor)
-        if (tri > 128) then
+        if (tri > 127) then
           dir = -1
-          tri = 128
+          tri = 127
         end
         if(tri < 0) then
           dir = 1
@@ -3015,7 +3784,7 @@ function style(q)
         end
       pixCol[x][y] = tri
       screen.pixel(x,y)
-      screen.level(math.floor((pixCol[x][y] / 128) * 16))
+      screen.level(math.floor((pixCol[x][y] / 127) * 15))
       screen.fill(0,0,0)
       end
     end
@@ -3149,7 +3918,6 @@ function style(q)
         color = 0
       end
     end
-    
   end
   if (q == 8) then
     factor = math.random(-100,100)
@@ -3188,10 +3956,10 @@ function style(q)
     for y=0,64 do
       for x=0,128 do
         pixCol[x][y] = col
-        col = col + 9
+        col = col + math.random(0,12)
         if (col > top) then
           col = 0
-          top = math.random(0,128)
+          top = math.random(0,127)
         end
         screen.pixel(x,y)
         screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
@@ -3222,10 +3990,10 @@ function style(q)
               pixCol[x][y] = 0
             end
             if(y >= height[w]-peak[w] and y <= height[w] and(x == l[w] or x == r[w])) then
-              pixCol[x][y] = 127 + (y - 64)
+              pixCol[x][y] = util.clamp(127 + (y - 64),0,127)
             end
             if(y == height[w] and (x<= l[w] or x >= r[w])) then
-              pixCol[x][y] = 127 * ((y)/64)
+              pixCol[x][y] = util.clamp(127 * ((y)/64),0,127)
             end
             screen.pixel(x,y)
             screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
@@ -3346,7 +4114,7 @@ function style(q)
       for top = 0, side do
         x = sx
         for row = 0, side do
-          pixCol[x][y] = math.floor(col - col *  (side/sideorigin) + 15)
+          pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin) + 15),0,127)
           screen.pixel(x,y)
           screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
           screen.fill(0,0,0)
@@ -3365,7 +4133,7 @@ function style(q)
       for bottom = 0, side do
         x = sx
         for row = 0, side do
-          pixCol[x][y] = math.floor(col - col *  (side/sideorigin) + 15)
+          pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin) + 15),0,127)
           screen.pixel(x,y)
           screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
           screen.fill(0,0,0)
@@ -3384,7 +4152,7 @@ function style(q)
       for bottom = 0, side do
         y = sy
         for row = 0, side do
-          pixCol[x][y] = math.floor(col - col *  (side/sideorigin) + 15)
+          pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin) + 15),0,127)
           screen.pixel(x,y)
           screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
           screen.fill(0,0,0)
@@ -3403,7 +4171,7 @@ function style(q)
       for bottom = 0, side do
         y = sy
         for row = 0, side do
-          pixCol[x][y] = math.floor(col - col *  (side/sideorigin)+ 15)
+          pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin)+ 15),0,127)
           screen.pixel(x,y)
           screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
           screen.fill(0,0,0)
