@@ -1,6 +1,6 @@
 // thin wrapper around `thebangs` for norns
 
-Engine_Thebangs : CroneEngine {
+Engine_Pixelbangs : CroneEngine {
 
 	var thebangs;
 	
