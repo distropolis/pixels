@@ -87,8 +87,6 @@ OneshVoicer {
 		var idxClamp, v;
 		idxClamp = idx.max(0).min(voices.size-1);
 		v = voices[idxClamp];
-
-		postln("stealing: " ++ idx ++ " (" ++ idxClamp ++ ")");
 		
 		if (v.isNil.not, {
 			if (v.isPlaying, {
