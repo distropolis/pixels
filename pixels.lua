@@ -559,6 +559,7 @@ savec:add_number("tempsynth5")
 savec:add_number("tempsynth6")
 
 --Display
+local drawnewmap = 0
 local linetime = 0
 local linex = 63
 local liney = 31
@@ -835,9 +836,20 @@ function redraw()
     screen.clear()
   end
   if (page == 1) then
-    if(drawing == 0) then
-      screen.clear()
+    if(drawing == 0 and drawnewmap == 0) then
       screen.display_png ("/home/we/dust/code/pixels/pixels.png", 0, 0)
+    end
+    if(drawnewmap == 1) then
+      for y=0,64 do
+        for x=0,128 do
+          screen.pixel(x,y)
+          screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
+          screen.fill(0,0,0)
+        end
+      end
+      _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
+      screen.display_png ("/home/we/dust/code/pixels/pixels.png", 0, 0)
+      drawnewmap = 0
     end
     if(drawing == 1) then
       screen.pixel(pixX[1],pixY[1])
@@ -854,7 +866,8 @@ function redraw()
       screen.line(pixX[thispix]+linex,pixY[thispix]+liney)
       screen.close()
       screen.stroke()
-      else
+    end
+    if(drawing == 0 and linetime > 0 and (pixDX[thispix] == 0 and pixDY[thispix] == 0)) then
         screen.line_width(1)
         screen.level(linetime)
         linetime = linetime - 2
@@ -2220,24 +2233,15 @@ function key(n,id)
       drawing = 0
       k2 = 0
       k3 = 0
-      _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
       tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
+      drawnewmap = 1
     end
     if(k2 == 1 and k3 == 1 and drawing == 0) then
       drawing = drawing + 1
+      drawnewmap = 1
       transport(0)
       thispix = 1
-      for x=0,128 do
-        for y=0,64 do
-          screen.pixel(x,y)
-          screen.level(math.floor(15*(pixCol[x][y]/127)))
-          screen.fill(0,0,0)
-        end
-      end
-      screen.update()
-      _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
       tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
-      screen.update()
     end
     if(k1 == 1 and k3 == 1 ) then
       if (drawing == 0) then
@@ -2305,9 +2309,7 @@ function key(n,id)
             scale5 = music.generate_scale(low[5],mscale,octaves[5])
             scale6 = music.generate_scale(low[6],mscale,octaves[6])
             savea:bang()
-            screen.display_png ("/home/we/dust/code/pixels/pixels_a.png", 0, 0)
-            screen.update()
-            _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
+            drawnewmap = 1
             syncbeat()
           end
         end
@@ -2348,9 +2350,7 @@ function key(n,id)
             scale5 = music.generate_scale(low[5],mscale,octaves[5])
             scale6 = music.generate_scale(low[6],mscale,octaves[6])
             saveb:bang()
-            screen.display_png ("/home/we/dust/code/pixels/pixels_b.png", 0, 0)
-            screen.update()
-            _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
+            drawnewmap = 1
             syncbeat()
           end
         end
@@ -2384,26 +2384,21 @@ function key(n,id)
               pan[a] = savec:get("pan"..a)
               wayfinder[a] = savea:get("wayfinder"..a)
             end
-                        scale1 = music.generate_scale(low[1],mscale,octaves[1])
+            scale1 = music.generate_scale(low[1],mscale,octaves[1])
             scale2 = music.generate_scale(low[2],mscale,octaves[2])
             scale3 = music.generate_scale(low[3],mscale,octaves[3])
             scale4 = music.generate_scale(low[4],mscale,octaves[4])
             scale5 = music.generate_scale(low[5],mscale,octaves[5])
             scale6 = music.generate_scale(low[6],mscale,octaves[6])
             savec:bang()
-            screen.display_png ("/home/we/dust/code/pixels/pixels_c.png", 0, 0)
-            screen.update()
-             _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
+            drawnewmap = 1
             syncbeat()
           end
         end
       end
       if(menupos == 18) then
-        screen.display_png ("/home/we/dust/code/pixels/pixels.png", 0, 0)
-        screen.update()
         if(savetext == 1) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_a.txt")
-          _norns.screen_export_png("/home/we/dust/code/pixels/pixels_a.png")
           savea:set("pixX1",pixX[1])
           savea:set("pixX2",pixX[2])
           savea:set("pixX3",pixX[3])
@@ -2526,7 +2521,6 @@ function key(n,id)
         end
         if(savetext == 2) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_b.txt")
-          _norns.screen_export_png("/home/we/dust/code/pixels/pixels_b.png")
           saveb:set("pixX1",pixX[1])
           saveb:set("pixX2",pixX[2])
           saveb:set("pixX3",pixX[3])
@@ -2649,7 +2643,6 @@ function key(n,id)
         end
         if(savetext == 3) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_c.txt")
-          _norns.screen_export_png("/home/we/dust/code/pixels/pixels_c.png")
           savec:set("pixX1",pixX[1])
           savec:set("pixX2",pixX[2])
           savec:set("pixX3",pixX[3])
@@ -2931,7 +2924,7 @@ function play(note,who)
   if(mod2er < 0) then
     mod2er = math.random(0,100)/factor
   end
-  engine.mod2(mod2er)
+  engine.mod2(mod2er + .001)
   engine.release(releaser)
   pwer = pw[who]/100
   if(pw[who] < 0) then
@@ -3693,6 +3686,7 @@ end
   
 --let's set the style of landscape our pixels travel on
 function style(q)
+  drawnewmap = 1
   if (q == 1) then
     total = 0
     a = 1
@@ -3707,7 +3701,6 @@ function style(q)
     a = 1
     total = sizer[a]
     for x=0,128 do
-
       for y=0,64 do
         temp = (-1*(math.sin(math.pi * ((x-total)/(sizer[a]))))) * 127 / peak[a]
         if (temp < 0) then
@@ -3718,9 +3711,6 @@ function style(q)
           total = total + sizer[a+1]
           a = a + 1
         end
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -3728,9 +3718,6 @@ function style(q)
     for x=0,128 do
       for y=0,64 do
         pixCol[x][y] = math.random(0,127)
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -3744,9 +3731,6 @@ function style(q)
     for x=0,128 do
       for y=0,64 do
         pixCol[x][y] = col[position] + counter
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
       counter = counter + 1
       if(counter == 8 and x < 127) then
@@ -3761,9 +3745,6 @@ function style(q)
     for x=0,128 do
       for y=0,64 do
         pixCol[x][y] = util.clamp(math.abs(math.sin(math.pi * ((factor+x)/(8+y))) * 127),0,127)
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
     end
   end  
@@ -3783,9 +3764,6 @@ function style(q)
           tri = 0
         end
       pixCol[x][y] = tri
-      screen.pixel(x,y)
-      screen.level(math.floor((pixCol[x][y] / 127) * 15))
-      screen.fill(0,0,0)
       end
     end
   end
@@ -3798,9 +3776,6 @@ function style(q)
     for y=0, 32 do
       for x=startpos,endpos do
         pixCol[x][y] = color
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
       color = color - 4
       if (color < 0) then
@@ -3816,9 +3791,6 @@ function style(q)
     for y=32, 64 do
       for x=startpos,endpos do
         pixCol[x][y] = color
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
       color = color + 4
       if (color > 127) then
@@ -3835,9 +3807,6 @@ function style(q)
     for x=0, 64 do
       for y=math.floor(startpos),math.floor(endpos) do
         pixCol[x][y] = color
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
       color = color - 2
       if (color < 0) then
@@ -3846,7 +3815,6 @@ function style(q)
       endpos = endpos - .5
       startpos = startpos + .5
     end
-    
     --right
     flip = 0 
     color = colora
@@ -3855,9 +3823,6 @@ function style(q)
     for x=64, 127 do
       for y=math.floor(startpos),math.floor(endpos) do
         pixCol[x][y] = color
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
       color = color + 2
       if (color > 127) then
@@ -3879,14 +3844,8 @@ function style(q)
       for x=0,128 do
         if(width < 4) then
           pixCol[x][y] = color
-          screen.pixel(x,y)
-          screen.level(math.floor((pixCol[x][y] / 127) * 15))
-          screen.fill(0,0,0)
           else
             pixCol[x][y] = basecol
-            screen.pixel(x,y)
-            screen.level(math.floor((pixCol[x][y] / 127) * 15))
-            screen.fill(0,0,0)
         end
         width = width + 1
         if(width > 7) then
@@ -3904,9 +3863,6 @@ function style(q)
       for y=0,64 do
         if (width < 4) then
           pixCol[x][y] = color
-          screen.pixel(x,y)
-          screen.level(math.floor((pixCol[x][y] / 127) * 15))
-          screen.fill(0,0,0)
         end
         width = width + 1
         if (width > 7) then
@@ -3924,9 +3880,6 @@ function style(q)
     for x=0,128 do
       for y=0,64 do
         pixCol[x][y] = util.clamp(math.abs((((math.sin(2 * math.pi * (x/127)))) * (127-factor) + ((math.sin(2 * math.pi * (y/63))) * (63-factor)))/1.5),0,127)
-        screen.pixel(x,y)
-        screen.level(math.floor((pixCol[x][y] / 127) * 15))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -3942,10 +3895,6 @@ function style(q)
         if (col > 127) then
           col = 0
         end
-        screen.pixel(xpos,y)
-        screen.pixel(xpos+1,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
       xpos = xpos + 2
     end
@@ -3961,9 +3910,6 @@ function style(q)
           col = 0
           top = math.random(0,127)
         end
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -3995,9 +3941,6 @@ function style(q)
             if(y == height[w] and (x<= l[w] or x >= r[w])) then
               pixCol[x][y] = util.clamp(127 * ((y)/64),0,127)
             end
-            screen.pixel(x,y)
-            screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-            screen.fill(0,0,0)
           end
         end
       end
@@ -4039,9 +3982,6 @@ function style(q)
             col = bottom
           end
         end
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -4057,9 +3997,6 @@ function style(q)
         if(y == 64 and #col > 1) then
           table.remove(col,selection)
         end
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -4069,9 +4006,6 @@ function style(q)
     for x=0,128 do
       for y=0,64 do
         pixCol[x][y] = util.clamp(math.abs(math.floor(math.sin((x-12.5)/100*math.pi) * factor2 + math.sin(y/63*math.pi) * factor)),0,127)
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -4080,9 +4014,6 @@ function style(q)
     for y=0,64 do
       for x=0,128 do
         pixCol[x][y] = util.clamp(math.floor(math.abs((x+y)/127 * (128-y/factor))),0,127)
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -4093,9 +4024,6 @@ function style(q)
     for y=0,64 do
       for x=0,128 do
         pixCol[x][y] = math.random(0,32)
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
     col = 127
@@ -4115,9 +4043,6 @@ function style(q)
         x = sx
         for row = 0, side do
           pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin) + 15),0,127)
-          screen.pixel(x,y)
-          screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-          screen.fill(0,0,0)
           x = x + 1
         end
         y = y + 1
@@ -4134,9 +4059,6 @@ function style(q)
         x = sx
         for row = 0, side do
           pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin) + 15),0,127)
-          screen.pixel(x,y)
-          screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-          screen.fill(0,0,0)
           x = x + 1
         end
         y = y - 1
@@ -4153,9 +4075,6 @@ function style(q)
         y = sy
         for row = 0, side do
           pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin) + 15),0,127)
-          screen.pixel(x,y)
-          screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-          screen.fill(0,0,0)
           y = y + 1
         end
         x = x + 1
@@ -4172,9 +4091,6 @@ function style(q)
         y = sy
         for row = 0, side do
           pixCol[x][y] = util.clamp(math.floor(col - col *  (side/sideorigin)+ 15),0,127)
-          screen.pixel(x,y)
-          screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-          screen.fill(0,0,0)
           y = y + 1
         end
         x = x - 1
@@ -4190,9 +4106,6 @@ function style(q)
         if(pixCol[x][y]<0) then
           pixCol[x][y] = math.random(0,8)
         end
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
     for a=1,math.random(25,125) do
@@ -4201,50 +4114,15 @@ function style(q)
       base = 127
       base1 = math.random(base-60,base-24)
       base2 = math.random(base-96,base-72)
-      screen.pixel(xx,yy)
-      screen.level(math.floor((base/127)*15))
       pixCol[xx][yy] = base
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx-1,yy)
-      screen.level(math.floor((base1/127)*15))
       pixCol[xx-1][yy] = base1
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx-2,yy)
-      screen.level(math.floor((base2/127)*15))
       pixCol[xx-2][yy] = base2
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx+1,yy)
-      screen.level(math.floor((base1/127)*15))
       pixCol[xx+1][yy] = base1
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx+2,yy)
-      screen.level(math.floor((base2/127)*15))
       pixCol[xx+2][yy] = base2
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx,yy+1)
-      screen.level(math.floor((base1/127)*15))
       pixCol[xx][yy+1] = base1
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx,yy+2)
-      screen.level(math.floor((base2/127)*15))
       pixCol[xx][yy+2] = base2
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx,yy-1)
-      screen.level(math.floor((base1/127)*15))
       pixCol[xx][yy-1] = base1
-      screen.fill(0,0,0)
-      
-      screen.pixel(xx,yy-2)
-      screen.level(math.floor((base2/127)*15))
       pixCol[xx][yy-2] = base2
-      screen.fill(0,0,0)
     end
   end
   if (q == 18) then
@@ -4272,22 +4150,15 @@ function style(q)
         y0 = math.floor(32 + (radius * math.sin(k)))
         if (x0 > -1 and x0 < 128 and y0 > -1 and y0 < 64) then
           pixCol[x0][y0] = col
-          screen.pixel(x0,y0)
-          screen.level(math.abs(math.floor((pixCol[x0][y0] / 127) * 15)))
-          screen.fill(0,0,0)
         end
         k = k + (math.pi * 2) / circ
       end
     end
-  
   end
   if (q == 19) then
     for y=0,64 do
       for x=0,128 do
         pixCol[x][y] = 0
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -4295,9 +4166,6 @@ function style(q)
     for y=0,64 do
       for x=0,128 do
         pixCol[x][y] = 63
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
@@ -4305,14 +4173,9 @@ function style(q)
     for y=0,64 do
       for x=0,128 do
         pixCol[x][y] = 127
-        screen.pixel(x,y)
-        screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
-        screen.fill(0,0,0)
       end
     end
   end
-  screen.update()
-  _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
   tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
   if(state==1) then
     transport(0)
