@@ -3,6 +3,8 @@
 --            sequencer 
 --             instrument
 --
+-- V1.1.1
+--
 -- six travelers inching over 
 -- luminous terrain
 -- worlds to be explored in time
