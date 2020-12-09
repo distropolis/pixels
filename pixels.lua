@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.1.1
+-- V1.1.2
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -561,6 +561,7 @@ savec:add_number("tempsynth5")
 savec:add_number("tempsynth6")
 
 --Display
+screen.aa(1)
 local drawnewmap = 0
 local linetime = 0
 local linex = 63
@@ -845,7 +846,7 @@ function redraw()
       for y=0,64 do
         for x=0,128 do
           screen.pixel(x,y)
-          screen.level(math.abs(math.floor((pixCol[x][y] / 127) * 15)))
+          screen.level(util.clamp(math.abs(math.floor((pixCol[x][y] / 127) * 15)),0,15))
           screen.fill(0,0,0)
         end
       end
@@ -856,13 +857,12 @@ function redraw()
     if(drawing == 1) then
       screen.pixel(pixX[1],pixY[1])
       pixCol[pixX[1]][pixY[1]] = drawcolor[1]
-      screen.level(math.floor((pixCol[pixX[1]][pixY[1]] / 127) * 15))
+      screen.level(util.clamp(math.floor((pixCol[pixX[1]][pixY[1]] / 127) * 15),0,15))
       screen.fill(0,0,0)
     end
     if(drawing == 0 and linetime > 0 and (pixDX[thispix] ~= 0 or pixDY[thispix]~=0)) then
-      screen.level(linetime)
+      screen.level(util.clamp(linetime,0,15))
       linetime = linetime - 1
-      screen.aa(1)
       screen.line_width(1)
       screen.move(pixX[thispix],pixY[thispix])
       screen.line(pixX[thispix]+linex,pixY[thispix]+liney)
@@ -871,7 +871,7 @@ function redraw()
     end
     if(drawing == 0 and linetime > 0 and (pixDX[thispix] == 0 and pixDY[thispix] == 0)) then
         screen.line_width(1)
-        screen.level(linetime)
+        screen.level(util.clamp(linetime,0,15))
         linetime = linetime - 2
         screen.circle(pixX[thispix],pixY[thispix],linetime/2)
         screen.close()
@@ -887,21 +887,21 @@ function redraw()
         end
         if (size[j] > 1 and drawing == 0) then
           screen.rect(pixX[j] - math.floor(size[j]/2)-1,pixY[j]-math.floor(size[j] /2)-1,size[j]+2,size[j]+2)
-          screen.level(size[j])
+          screen.level(util.clamp(size[j],0,15))
           screen.fill(0,0,0)
           screen.rect(pixX[j] - math.floor(size[j]/2),pixY[j]-math.floor(size[j] /2),size[j],size[j])
-          screen.level(math.floor((pixCol[math.floor(pixX[j])][math.floor(pixY[j])] / 128) * 16))
+          screen.level(util.clamp(math.floor((pixCol[math.floor(pixX[j])][math.floor(pixY[j])] / 127) * 15),0,15))
           size[j] = size[j] - 1
           screen.fill(0,0,0)
         end
       if (size[j] == 1 and drawing == 0) then
         screen.pixel(math.floor(pixX[j]),math.floor(pixY[j]))
-        screen.level(math.floor(pulse[j]))
+        screen.level(util.clamp(math.floor(pulse[j]),0,15))
         screen.fill(0,0,0)
       end
     end
     if(wordblast > 0 and drawing == 0) then
-      screen.level(wordblast)
+      screen.level(util.clamp(wordblast,0,15))
       screen.font_face(1)
       screen.font_size(math.floor((wordblast/2)+12))
       screen.move(wordblast + 36,32)
@@ -1381,10 +1381,6 @@ function redraw()
     screen.move(91,10)
     screen.text("synth I")
     screen.level(3)
-    screen.move(5,10)
-    --screen.text("algo:")
-    --screen.move(26,10)
-    --screen.text(synths[tempsynth])
     screen.move(5,20)
     screen.text("atk ")
     screen.move(37,20)
@@ -2200,8 +2196,8 @@ function key(n,id)
   if(page ==1) then
     if (n == 2 and id ==1) then
       k2 = 1
-      linetime = 16
-      wordblast = 16
+      linetime = 15
+      wordblast = 15
       word = thispix
       size[thispix] = 6
       if(wayfinder[thispix] > -1 and wayfinder[thispix] < 61) then
@@ -3077,7 +3073,7 @@ function enc(n,delta)
       end
     end
     if (n == 2 and k2 == 1 and drawing == 0) then
-      linetime = 16
+      linetime = 15
       wayfinder[thispix] = util.clamp(wayfinder[thispix] + delta, -2,62)
       if(wayfinder[thispix] < 0 or wayfinder[thispix] > 60) then
         linex = 0
@@ -3103,7 +3099,7 @@ function enc(n,delta)
       wordblast = 8
       word = thispix
       size[thispix] = 6
-      linetime = 16
+      linetime = 15
       if(wayfinder[thispix] < 0 or wayfinder[thispix] > 60) then
         linex = 0
         liney = 0
