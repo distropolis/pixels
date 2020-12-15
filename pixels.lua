@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.1.2
+-- V1.2
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -878,26 +878,26 @@ function redraw()
         screen.stroke()
     end
     for j=1,numpix do
-        if(drawing == 0) then
-          pulseinc[j] = (16/12) / (60/tempo) /  stepdivamount[stepdiv[j]] 
-          pulse[j] = pulse[j] - pulseinc[j]
-          if (pulse[j] < 0) then
-            pulse[j] = 15
-          end
-        end
-        if (size[j] > 1 and drawing == 0) then
-          screen.rect(pixX[j] - math.floor(size[j]/2)-1,pixY[j]-math.floor(size[j] /2)-1,size[j]+2,size[j]+2)
-          screen.level(util.clamp(size[j],0,15))
-          screen.fill(0,0,0)
-          screen.rect(pixX[j] - math.floor(size[j]/2),pixY[j]-math.floor(size[j] /2),size[j],size[j])
-          screen.level(util.clamp(math.floor((pixCol[math.floor(pixX[j])][math.floor(pixY[j])] / 127) * 15),0,15))
-          size[j] = size[j] - 1
-          screen.fill(0,0,0)
-        end
+      if (size[j] > 1 and drawing == 0) then
+        screen.rect(pixX[j] - math.floor(size[j]/2)-1,pixY[j]-math.floor(size[j] /2)-1,size[j]+2,size[j]+2)
+        screen.level(util.clamp(size[j],0,15))
+        screen.fill(0,0,0)
+        screen.rect(pixX[j] - math.floor(size[j]/2),pixY[j]-math.floor(size[j] /2),size[j],size[j])
+        screen.level(util.clamp(math.floor((pixCol[math.floor(pixX[j])][math.floor(pixY[j])] / 127) * 15),0,15))
+        size[j] = size[j] - 1
+        screen.fill(0,0,0)
+      end
       if (size[j] == 1 and drawing == 0) then
         screen.pixel(math.floor(pixX[j]),math.floor(pixY[j]))
         screen.level(util.clamp(math.floor(pulse[j]),0,15))
         screen.fill(0,0,0)
+      end
+      if(drawing == 0) then
+        pulseinc[j] = (16/12) / (60/tempo) /  stepdivamount[stepdiv[j]] 
+        pulse[j] = pulse[j] - pulseinc[j]
+        if (pulse[j] < 0) then
+          pulse[j] = 15
+        end
       end
     end
     if(wordblast > 0 and drawing == 0) then
@@ -2168,13 +2168,21 @@ function redraw()
   screen.fill(0,0,0)
   screen.update()
 
-  --if(page == 1) then
-    --if (start == 1) then
-     -- _norns.screen_export_png("/home/we/dust/code/pixels/pics/screena"..piccount..".png")
-     -- piccount = piccount + 1
-    --end
-  --end
-
+  --[[if(page == 1 and state == 1) then
+    if(piccount < 1000) then
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics/screena"..piccount..".png")
+      piccount = piccount + 1
+    end
+    if(piccount > 999 and piccount < 2000) then
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics2/screena"..piccount..".png")
+      piccount = piccount + 1
+    end
+    if(piccount > 1999 and piccount < 3000) then
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics3/screena"..piccount..".png")
+      piccount = piccount + 1
+    end
+  end
+  --]]
 
 end
   
@@ -2339,7 +2347,7 @@ function key(n,id)
               hz2[a] = saveb:get("hz2"..a)
               amp[a] = saveb:get("amp"..a)
               pan[a] = saveb:get("pan"..a)
-              wayfinder[a] = savea:get("wayfinder"..a)
+              wayfinder[a] = saveb:get("wayfinder"..a)
             end
             scale1 = music.generate_scale(low[1],mscale,octaves[1])
             scale2 = music.generate_scale(low[2],mscale,octaves[2])
@@ -2380,7 +2388,7 @@ function key(n,id)
               hz2[a] = savec:get("hz2"..a)
               amp[a] = savec:get("amp"..a)
               pan[a] = savec:get("pan"..a)
-              wayfinder[a] = savea:get("wayfinder"..a)
+              wayfinder[a] = savec:get("wayfinder"..a)
             end
             scale1 = music.generate_scale(low[1],mscale,octaves[1])
             scale2 = music.generate_scale(low[2],mscale,octaves[2])
