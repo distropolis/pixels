@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.2
+-- V1.3
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -133,9 +133,28 @@
 -- and explore sounds.
 --
 --        
--- S E C R E T M O D E?
+-- DRAWING MODE!
 --
--- ?
+-- to enter drawing mode,
+-- press K2 + K3 on the map
+-- screen. you can now draw
+-- your own landscape. the 
+-- initial color/pitch is black
+-- to exit, just press K2 + K3
+-- again.
+--
+-- encoder 1 = brightness/note
+-- encoder 2 = x position
+-- encoder 3 = y position
+--
+-- HINT!
+-- while in drawing mode, you
+-- connot access the other menu
+-- pages or play your sequence.
+-- change the "style" to "dark"
+-- "gray" or "light" to give 
+-- yourself a nice canvas.
+-- 
 -- thanks to @zebra for 
 -- the bangs engine
 
@@ -167,6 +186,8 @@ local attack = {0,0,0,0,0,0}
 local hz2 = {60,60,60,60,60,60}
 
 --Logic
+local rc = 1
+local mc = 1
 local drawing = 0
 local k2 = 0
 local k3 = 0
@@ -621,7 +642,7 @@ local pixCol = {}
 local size = {1,1,1,1,1,1}
 local pulse = {15,15,15,15,15,15}
 local pulseinc = {0,0,0,0,0,0}
-local styles = {"columns", "t.v.", "stripes", "sinefeild", "strands","air duct","flannel","hubba","weave","grass","unknown","interlaced","sliced","orb","shore","afterimage","stargazing","eye","dark","gray","light"}
+local styles = {"columns", "t.v.", "stripes", "sinefield", "strands","air duct","flannel","hubba","weave","grass","unknown","interlaced","sliced","orb","shore","afterimage","stargazing","eye","dark","gray","light"}
 local styleselect = 1
 local styleselecttemp = 1
 local initial = 1
@@ -634,6 +655,7 @@ re = metro.init()
 re.time = 1 / 12
 re.event = function()
   redraw()
+  menuwatcher()
 end
 re:start()
 
@@ -833,12 +855,29 @@ function move(who)
   end
 end
 
+function menuwatcher()
+  if(drawing == 1 and drawnewmap ~= 1) then
+    mc = mc + 1
+    if (mc > 10) then
+      mc = 0
+    end
+  end
+  if (mc ~= rc and drawing == 1 and drawnewmap ~= 1) then
+    mc = 0
+    rc = -1
+    drawnewmap = 1
+  end
+end
 --oh god ... this redraw function is outta control ... but somehow still works
 function redraw()
   if(drawing == 0) then
     screen.clear()
   end
   if (page == 1) then
+    rc = rc + 1
+    if(rc > 10) then
+      rc = 0
+    end
     if(drawing == 0 and drawnewmap == 0) then
       screen.display_png ("/home/we/dust/code/pixels/pixels.png", 0, 0)
     end
@@ -856,8 +895,8 @@ function redraw()
     end
     if(drawing == 1) then
       screen.pixel(pixX[1],pixY[1])
-      pixCol[pixX[1]][pixY[1]] = drawcolor[1]
-      screen.level(util.clamp(math.floor((pixCol[pixX[1]][pixY[1]] / 127) * 15),0,15))
+      pixCol[math.floor(pixX[1])][math.floor(pixY[1])] = drawcolor[1]
+      screen.level(util.clamp(math.floor((pixCol[math.floor(pixX[1])][math.floor(pixY[1])] / 127) * 15),0,15))
       screen.fill(0,0,0)
     end
     if(drawing == 0 and linetime > 0 and (pixDX[thispix] ~= 0 or pixDY[thispix]~=0)) then
@@ -2204,16 +2243,18 @@ function key(n,id)
   if(page ==1) then
     if (n == 2 and id ==1) then
       k2 = 1
-      linetime = 15
-      wordblast = 15
-      word = thispix
-      size[thispix] = 6
-      if(wayfinder[thispix] > -1 and wayfinder[thispix] < 61) then
-        linex = ( (10 * math.cos((6*wayfinder[thispix] * math.pi / 180))))
-        liney = ( (10 * math.sin((6*wayfinder[thispix] * math.pi / 180))))
-      else
-        linex = 0
-        liney = 0
+      if (drawing == 0) then
+        linetime = 15
+        wordblast = 15
+        word = thispix
+        size[thispix] = 6
+        if(wayfinder[thispix] > -1 and wayfinder[thispix] < 61) then
+          linex = ( (10 * math.cos((6*wayfinder[thispix] * math.pi / 180))))
+          liney = ( (10 * math.sin((6*wayfinder[thispix] * math.pi / 180))))
+        else
+          linex = 0
+          liney = 0
+        end
       end
     end
     if (n == 2 and id ==0) then
@@ -2221,36 +2262,7 @@ function key(n,id)
     end
     if (n == 3 and id == 1) then
       k3 = 1
-      state = state + 1
-      if (state > 1) then
-        state = 0
-        --piccount = piccount + 100
-      end
-     -- start = state
-      transport(state)
-      for j=1,6 do
-        pulse[j] = 15
-      end
-    end
-    if (n == 3 and id == 0) then
-      k3 = 0
-    end
-    if(k2 == 1 and k3 == 1 and drawing == 1) then
-      drawing = 0
-      k2 = 0
-      k3 = 0
-      tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
-      drawnewmap = 1
-    end
-    if(k2 == 1 and k3 == 1 and drawing == 0) then
-      drawing = drawing + 1
-      drawnewmap = 1
-      transport(0)
-      thispix = 1
-      tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
-    end
-    if(k1 == 1 and k3 == 1 ) then
-      if (drawing == 0) then
+      if(drawing == 0 and k2 == 0) then
         state = state + 1
         if (state > 1) then
           state = 0
@@ -2260,6 +2272,25 @@ function key(n,id)
           pulse[j] = 15
         end
       end
+    end
+    if (n == 3 and id == 0) then
+      k3 = 0
+    end
+    if(k2 == 1 and k3 == 1 and drawing == 1) then
+      drawing = 0
+      k2 = 0
+      k3 = 0
+      state = 0
+      tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
+      drawnewmap = 1
+    end
+    if(k2 == 1 and k3 == 1 and drawing == 0) then
+      drawing = drawing + 1
+      drawnewmap = 1
+      transport(0)
+      thispix = 1
+      rc = mc
+      tab.save(pixCol, "/home/we/dust/code/pixels/pixel_data.txt")
     end
   end
   if (page == 2) then
@@ -3041,7 +3072,7 @@ function enc(n,delta)
   if (page == 1) then
     if(n == 1 and drawing == 1) then
       drawcolor[1] = util.clamp(drawcolor[1] + delta,0,127)
-      play(pixCol[pixX[1]][pixY[1]],1)
+      play(pixCol[math.floor(pixX[1])][math.floor(pixY[1])],1)
     end
     if (n ==1 and k2 == 0 and drawing == 0) then
       tempo = util.clamp(tempo + delta,1,240)
@@ -3068,9 +3099,11 @@ function enc(n,delta)
         pulse[j] = 15
       end
     end
-    if (n == 3 and k3 == 1 and drawing == 0) then
-    end
+
     if (n == 2 and k2 == 0 and k3 == 0) then
+      if(drawing == 1) then
+        util.clamp(delta,-1,1)
+      end
       pixX[thispix] = util.clamp(pixX[thispix] + delta,0,127)
       if(drawing == 0) then
         play(pixCol[  math.floor(pixX[thispix])  ][math.floor(pixY[thispix])],thispix)
