@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.3
+-- V1.4
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -133,28 +133,9 @@
 -- and explore sounds.
 --
 --        
--- DRAWING MODE!
+-- S E C R E T M O D E?
 --
--- to enter drawing mode,
--- press K2 + K3 on the map
--- screen. you can now draw
--- your own landscape. the 
--- initial color/pitch is black
--- to exit, just press K2 + K3
--- again.
---
--- encoder 1 = brightness/note
--- encoder 2 = x position
--- encoder 3 = y position
---
--- HINT!
--- while in drawing mode, you
--- connot access the other menu
--- pages or play your sequence.
--- change the "style" to "dark"
--- "gray" or "light" to give 
--- yourself a nice canvas.
--- 
+-- ?
 -- thanks to @zebra for 
 -- the bangs engine
 
@@ -281,7 +262,12 @@ savea:add_number("octaves3")
 savea:add_number("octaves4")
 savea:add_number("octaves5")
 savea:add_number("octaves6")
-savea:add_number("mscale")
+savea:add_number("mscale1")
+savea:add_number("mscale2")
+savea:add_number("mscale3")
+savea:add_number("mscale4")
+savea:add_number("mscale5")
+savea:add_number("mscale6")
 savea:add_number("midiVEL1")
 savea:add_number("midiVEL2")
 savea:add_number("midiVEL3")
@@ -400,7 +386,12 @@ saveb:add_number("octaves3")
 saveb:add_number("octaves4")
 saveb:add_number("octaves5")
 saveb:add_number("octaves6")
-saveb:add_number("mscale")
+saveb:add_number("mscale1")
+saveb:add_number("mscale2")
+saveb:add_number("mscale3")
+saveb:add_number("mscale4")
+saveb:add_number("mscale5")
+saveb:add_number("mscale6")
 saveb:add_number("midiVEL1")
 saveb:add_number("midiVEL2")
 saveb:add_number("midiVEL3")
@@ -519,7 +510,12 @@ savec:add_number("octaves3")
 savec:add_number("octaves4")
 savec:add_number("octaves5")
 savec:add_number("octaves6")
-savec:add_number("mscale")
+savec:add_number("mscale1")
+savec:add_number("mscale2")
+savec:add_number("mscale3")
+savec:add_number("mscale4")
+savec:add_number("mscale5")
+savec:add_number("mscale6")
 savec:add_number("midiVEL1")
 savec:add_number("midiVEL2")
 savec:add_number("midiVEL3")
@@ -583,6 +579,7 @@ savec:add_number("tempsynth6")
 
 --Display
 screen.aa(1)
+local scalefade = 0
 local drawnewmap = 0
 local linetime = 0
 local linex = 63
@@ -599,12 +596,13 @@ local colora = 0
 
 
 --Notes
+local scalenames = {"Ma","Nmi","Hmi","Mmi","Dor","Phr","Lyd","Mix","Loc","WT","MaP","miP","MaB","Alt","DoB","MxB","BlS","DWH","DHW","NeM","HuM","HaM","Hum","Lym","Nem","LoM","LWT","6TS","Bal","Per","EIP","Ori","DHa","Eni","Ovr","8TS","Pro","Gag","InS","Oki","Chr"}
 local high = 128
 local low = {48,48,48,48,48,48}
 local lowmain = 48
 local octaves = {3,3,3,3,3,3}
 local octavesmain = 3
-local mscale = 1
+local mscale = {1,1,1,1,1,1}
 local mscaletemp = 1
 local drawcolor = {0,0,0,0,0,0}
 local scale1 = {}
@@ -612,7 +610,7 @@ local scale2 = {}
 local scale3 = {}
 local scale4 = {}
 local scale5 = {}
-local scale5 = {}
+local scale6 = {}
 
 --Pixels
 local wayfinder =  {0,0,0,0,0,0}
@@ -630,7 +628,6 @@ local trigprobmain = 100
 local pixX = {0,10,20,30,40,50}
 local pixY = {0,10,20,30,40,50}
 local direction = {0,0,0,0,0,0}
-local directionname = {"N","NE","E","SE","S","SW","W","NW","0"}
 local pixDX = {0,0,0,0,0,0}
 local pixDY = {0,0,0,0,0,0}
 local stepdiv = {0,0,0,0,0,0}
@@ -716,27 +713,27 @@ function miditrans(data)
       mute = false
       if(key1 > 0) then
         low[1] = d.note
-        scale1 = music.generate_scale(low[1],mscale,octaves[1])
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
       end
       if(key2 > 0) then
         low[2] = d.note
-        scale2 = music.generate_scale(low[2],mscale,octaves[2])
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
       end
       if(key3 > 0) then
         low[3] = d.note
-        scale3 = music.generate_scale(low[3],mscale,octaves[3])
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
       end
       if(key4 > 0) then
         low[4] = d.note
-        scale4 = music.generate_scale(low[4],mscale,octaves[4])
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
       end
       if(key5 > 0) then
         low[5] = d.note
-        scale5 = music.generate_scale(low[5],mscale,octaves[5])
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
       end
       if(key6 > 0) then
         low[6] = d.note
-        scale6 = music.generate_scale(low[6],mscale,octaves[6])
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
       end
     end
     if (d.type == "start" or d.type == "continue") then
@@ -758,12 +755,12 @@ function init()
       pixCol[x][y] = 0
     end
   end
-  scale1 = music.generate_scale(low[1],mscale,octaves[1])
-  scale2 = music.generate_scale(low[2],mscale,octaves[2])
-  scale3 = music.generate_scale(low[3],mscale,octaves[3])
-  scale4 = music.generate_scale(low[4],mscale,octaves[4])
-  scale5 = music.generate_scale(low[5],mscale,octaves[5])
-  scale6 = music.generate_scale(low[6],mscale,octaves[6])
+  scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+  scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+  scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+  scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+  scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+  scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
   stylechoice = math.random(1,#styles-3)
   styleselect = stylechoice
   style(stylechoice)
@@ -949,6 +946,9 @@ function redraw()
     end
   end
   if (page == 2) then
+    if(scalefade > 0) then
+      scalefade = scalefade - 1
+    end
     screen.level(math.floor(wordcol1))
     screen.font_face(1)
     screen.font_size(8)
@@ -964,7 +964,30 @@ function redraw()
     screen.move(5,10)
     screen.text("style " .. string.lower(styles[styleselecttemp]))
     screen.move(5,20)
-    screen.text("scale ".. string.lower(music.SCALES[mscaletemp].name))
+    screen.text("scale")
+    if (scalefade == 0) then
+      screen.move(37,20)
+      screen.text((scalenames[mscale[1]]))
+      screen.move(52,20)
+      screen.text((scalenames[mscale[2]]))
+      screen.move(67,20)
+      screen.text((scalenames[mscale[3]]))
+      screen.move(82,20)
+      screen.text((scalenames[mscale[4]]))
+      screen.move(97,20)
+      screen.text((scalenames[mscale[5]]))
+      screen.move(112,20)
+      screen.text((scalenames[mscale[6]]))
+      else
+        if ((menupos - 1) < 7) then
+          screen.move(30,20)
+          screen.text((menupos-1).." "..string.lower(music.SCALES[mscale[menupos-1]].name))
+        end
+        if (menupos == 8) then
+          screen.move(30,20)
+          screen.text("A "..string.lower(music.SCALES[mscaletemp].name))
+        end
+    end
     screen.move(5,30)
     screen.text("root ")
     screen.move(37,30)
@@ -1050,17 +1073,56 @@ function redraw()
       screen.move(6,11)
       screen.text("style " .. string.lower(styles[styleselecttemp]))
     end
-    if(menupos == 2) then
-      screen.level(15)
-      screen.move(6,21)
-      screen.text("scale " .. string.lower(music.SCALES[mscaletemp].name))
+    if(scalefade == 0) then
+      if(menupos > 1 and menupos < 9) then
+        screen.level(15)
+        screen.move(6,21)
+        screen.text("scale")
+      end
+      if(menupos == 2 or menupos == 8) then
+        screen.move(38,21)
+        screen.text(scalenames[mscale[1]])
+      end
+      if(menupos == 3 or menupos == 8) then
+        screen.move(53,21)
+        screen.text(scalenames[mscale[2]])
+      end
+      if(menupos == 4 or menupos == 8) then
+        screen.move(68,21)
+        screen.text(scalenames[mscale[3]])
+      end
+      if(menupos == 5 or menupos == 8) then
+        screen.move(83,21)
+        screen.text(scalenames[mscale[4]])
+      end
+      if(menupos == 6 or menupos == 8) then
+        screen.move(98,21)
+        screen.text(scalenames[mscale[5]])
+      end
+      if(menupos == 7 or menupos == 8) then
+        screen.move(113,21)
+        screen.text(scalenames[mscale[6]])
+      end
+      else
+        screen.level(15)
+        screen.move(6,21)
+        screen.text("scale")
+        screen.level(util.clamp(1,15,scalefade))
+        if ((menupos - 1) < 7) then
+          screen.move(31,21)
+          screen.text((menupos-1).." "..string.lower(music.SCALES[mscale[menupos-1]].name))
+        end
+        if (menupos == 8) then
+          screen.move(31,21)
+          screen.text("A "..string.lower(music.SCALES[mscaletemp].name))
+        end
     end
-    if(menupos > 2 and menupos < 10) then
+    if(menupos > 8 and menupos < 16) then
       screen.level(15)
       screen.move(6,31)
       screen.text("root")
     end
-    if(menupos == 3 or menupos == 9) then
+    if(menupos == 9 or menupos == 15) then
       screen.level(15)
       screen.move(38,31)
       if(key1 == 1) then
@@ -1073,7 +1135,7 @@ function redraw()
         screen.text(music.note_num_to_name(low[1]) .. math.floor(low[1]/12))
       end
     end
-    if(menupos == 4 or menupos == 9) then
+    if(menupos == 10 or menupos == 15) then
       screen.level(15)
       screen.move(53,31)
       if(key2 == 1) then
@@ -1086,7 +1148,7 @@ function redraw()
         screen.text(music.note_num_to_name(low[2]) .. math.floor(low[2]/12))
       end
     end
-    if(menupos == 5 or menupos == 9) then
+    if(menupos == 11 or menupos == 15) then
       screen.level(15)
       screen.move(68,31)
       if(key3 == 1) then
@@ -1099,7 +1161,7 @@ function redraw()
         screen.text(music.note_num_to_name(low[3]) .. math.floor(low[3]/12))
       end   
     end
-    if(menupos == 6 or menupos == 9) then
+    if(menupos == 12 or menupos == 15) then
       screen.level(15)
       screen.move(83,31)
       if(key4 == 1) then
@@ -1112,7 +1174,7 @@ function redraw()
         screen.text(music.note_num_to_name(low[4]) .. math.floor(low[4]/12))
       end
     end
-    if(menupos == 7 or menupos == 9) then
+    if(menupos == 13 or menupos == 15) then
       screen.level(15)
       screen.move(98,31)
       if(key5 == 1) then
@@ -1125,7 +1187,7 @@ function redraw()
         screen.text(music.note_num_to_name(low[5]) .. math.floor(low[5]/12))
       end
     end
-    if(menupos == 8 or menupos == 9) then
+    if(menupos == 14 or menupos == 15) then
       screen.level(15)
       screen.move(113,31)
       if(key6 == 1) then
@@ -1138,47 +1200,47 @@ function redraw()
         screen.text(music.note_num_to_name(low[6]) .. math.floor(low[6]/12))
       end
     end
-    if(menupos > 9 and menupos < 17) then
+    if(menupos > 15 and menupos < 23) then
       screen.level(15)
       screen.move(6,41)
       screen.text("oct ")
     end
-    if(menupos == 10 or menupos == 16) then
+    if(menupos == 16 or menupos == 22) then
       screen.level(15)
       screen.move(38,41)
       screen.text(octaves[1])
     end
-    if(menupos == 11 or menupos == 16) then
+    if(menupos == 17 or menupos == 22) then
       screen.level(15)
       screen.move(53,41)
       screen.text(octaves[2])
     end
-    if(menupos == 12 or menupos == 16) then
+    if(menupos == 18 or menupos == 22) then
       screen.level(15)
       screen.move(68,41)
       screen.text(octaves[3])
     end
-    if(menupos == 13 or menupos == 16) then
+    if(menupos == 19 or menupos == 22) then
       screen.level(15)
       screen.move(83,41)
       screen.text(octaves[4])
     end
-    if(menupos == 14 or menupos == 16) then
+    if(menupos == 20 or menupos == 22) then
       screen.level(15)
       screen.move(98,41)
       screen.text(octaves[5])
     end
-    if(menupos == 15 or menupos == 16) then
+    if(menupos == 21 or menupos == 22) then
       screen.level(15)
       screen.move(113,41)
       screen.text(octaves[6])
     end
-    if(menupos == 17) then
+    if(menupos == 23) then
       screen.level(15)
       screen.move(6,51)
       screen.text("load " .. loading[loadtext])
     end
-    if(menupos == 18) then
+    if(menupos == 24) then
       screen.level(15)
       screen.move(6,61)
       screen.text("save " .. saving[savetext])
@@ -2207,21 +2269,21 @@ function redraw()
   screen.fill(0,0,0)
   screen.update()
 
-  --[[if(page == 1 and state == 1) then
+  if(page == 1 and state == 1) then
     if(piccount < 1000) then
-      _norns.screen_export_png("/home/we/dust/code/pixels/pics/screena"..piccount..".png")
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics/pic"..piccount..".png")
       piccount = piccount + 1
     end
     if(piccount > 999 and piccount < 2000) then
-      _norns.screen_export_png("/home/we/dust/code/pixels/pics2/screena"..piccount..".png")
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics2/pic"..piccount..".png")
       piccount = piccount + 1
     end
     if(piccount > 1999 and piccount < 3000) then
-      _norns.screen_export_png("/home/we/dust/code/pixels/pics3/screena"..piccount..".png")
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics3/pic"..piccount..".png")
       piccount = piccount + 1
     end
   end
-  --]]
+
 
 end
   
@@ -2237,7 +2299,6 @@ function key(n,id)
     menupos = lastmenupos
     numpixsel = numpix
     styleselecttemp = styleselect
-    mscaletemp= mscale
     initialtemp = initial
   end
   if(page ==1) then
@@ -2299,16 +2360,7 @@ function key(n,id)
         style(styleselecttemp)
         styleselect = styleselecttemp
       end
-      if (menupos == 2) then
-        mscale = mscaletemp
-        scale1 = music.generate_scale(low[1],mscale,octaves[1])
-        scale2 = music.generate_scale(low[2],mscale,octaves[2])
-        scale3 = music.generate_scale(low[3],mscale,octaves[3])
-        scale4 = music.generate_scale(low[4],mscale,octaves[4])
-        scale5 = music.generate_scale(low[5],mscale,octaves[5])
-        scale6 = music.generate_scale(low[6],mscale,octaves[6])
-      end
-      if(menupos ==17) then
+      if(menupos == 23) then
         if(loadtext == 1) then
           f=io.open("/home/we/dust/code/pixels/pixel_data_a.txt","r")
           if (f~=nil) then 
@@ -2317,8 +2369,8 @@ function key(n,id)
             numpix = savea:get("numpix")
             styleselect = savea:get("styleselect")
             tempo = savea:get("tempo")
-            mscale = savea:get("mscale")
             for a=1,6 do
+              mscale[a] = savea:get("mscale"..a)
               tempsynth[a] = savea:get("tempsynth"..a)
               pixX[a] = savea:get("pixX"..a)
               pixY[a] = savea:get("pixY"..a)
@@ -2339,12 +2391,12 @@ function key(n,id)
               pan[a] = savea:get("pan"..a)
               wayfinder[a] = savea:get("wayfinder"..a)
             end
-            scale1 = music.generate_scale(low[1],mscale,octaves[1])
-            scale2 = music.generate_scale(low[2],mscale,octaves[2])
-            scale3 = music.generate_scale(low[3],mscale,octaves[3])
-            scale4 = music.generate_scale(low[4],mscale,octaves[4])
-            scale5 = music.generate_scale(low[5],mscale,octaves[5])
-            scale6 = music.generate_scale(low[6],mscale,octaves[6])
+            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
             savea:bang()
             drawnewmap = 1
             syncbeat()
@@ -2358,8 +2410,8 @@ function key(n,id)
             numpix = saveb:get("numpix")
             styleselect = saveb:get("styleselect")
             tempo = saveb:get("tempo")
-            mscale = saveb:get("mscale")
             for a=1,6 do
+              mscale[a] = savea:get("mscale"..a)
               tempsynth[a] = saveb:get("tempsynth"..a)
               pixX[a] = saveb:get("pixX"..a)
               pixY[a] = saveb:get("pixY"..a)
@@ -2380,12 +2432,12 @@ function key(n,id)
               pan[a] = saveb:get("pan"..a)
               wayfinder[a] = saveb:get("wayfinder"..a)
             end
-            scale1 = music.generate_scale(low[1],mscale,octaves[1])
-            scale2 = music.generate_scale(low[2],mscale,octaves[2])
-            scale3 = music.generate_scale(low[3],mscale,octaves[3])
-            scale4 = music.generate_scale(low[4],mscale,octaves[4])
-            scale5 = music.generate_scale(low[5],mscale,octaves[5])
-            scale6 = music.generate_scale(low[6],mscale,octaves[6])
+            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
             saveb:bang()
             drawnewmap = 1
             syncbeat()
@@ -2399,8 +2451,8 @@ function key(n,id)
             numpix = savec:get("numpix")
             styleselect = savec:get("styleselect")
             tempo = savec:get("tempo")
-            mscale = savec:get("mscale")
             for a=1,6 do
+              mscale[a] = savea:get("mscale"..a)
               tempsynth[a] = savec:get("tempsynth"..a)
               pixX[a] = savec:get("pixX"..a)
               pixY[a] = savec:get("pixY"..a)
@@ -2421,19 +2473,19 @@ function key(n,id)
               pan[a] = savec:get("pan"..a)
               wayfinder[a] = savec:get("wayfinder"..a)
             end
-            scale1 = music.generate_scale(low[1],mscale,octaves[1])
-            scale2 = music.generate_scale(low[2],mscale,octaves[2])
-            scale3 = music.generate_scale(low[3],mscale,octaves[3])
-            scale4 = music.generate_scale(low[4],mscale,octaves[4])
-            scale5 = music.generate_scale(low[5],mscale,octaves[5])
-            scale6 = music.generate_scale(low[6],mscale,octaves[6])
+            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
             savec:bang()
             drawnewmap = 1
             syncbeat()
           end
         end
       end
-      if(menupos == 18) then
+      if(menupos == 24) then
         if(savetext == 1) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_a.txt")
           savea:set("pixX1",pixX[1])
@@ -2487,7 +2539,12 @@ function key(n,id)
           savea:set("octaves4",octaves[4])
           savea:set("octaves5",octaves[5])
           savea:set("octaves6",octaves[6])
-          savea:set("mscale",mscale)
+          savea:set("mscale1",mscale[1])
+          savea:set("mscale2",mscale[2])
+          savea:set("mscale3",mscale[3])
+          savea:set("mscale4",mscale[4])
+          savea:set("mscale5",mscale[5])
+          savea:set("mscale6",mscale[6])
           savea:set("midiVEL1",midiVEL[1])
           savea:set("midiVEL2",midiVEL[2])
           savea:set("midiVEL3",midiVEL[3])
@@ -2609,7 +2666,12 @@ function key(n,id)
           saveb:set("octaves4",octaves[4])
           saveb:set("octaves5",octaves[5])
           saveb:set("octaves6",octaves[6])
-          saveb:set("mscale",mscale)
+          saveb:set("mscale1",mscale[1])
+          saveb:set("mscale2",mscale[2])
+          saveb:set("mscale3",mscale[3])
+          saveb:set("mscale4",mscale[4])
+          saveb:set("mscale5",mscale[5])
+          saveb:set("mscale6",mscale[6])
           saveb:set("midiVEL1",midiVEL[1])
           saveb:set("midiVEL2",midiVEL[2])
           saveb:set("midiVEL3",midiVEL[3])
@@ -2731,7 +2793,12 @@ function key(n,id)
           savec:set("octaves4",octaves[4])
           savec:set("octaves5",octaves[5])
           savec:set("octaves6",octaves[6])
-          savec:set("mscale",mscale)
+          savec:set("mscale1",mscale[1])
+          savec:set("mscale2",mscale[2])
+          savec:set("mscale3",mscale[3])
+          savec:set("mscale4",mscale[4])
+          savec:set("mscale5",mscale[5])
+          savec:set("mscale6",mscale[6])
           savec:set("midiVEL1",midiVEL[1])
           savec:set("midiVEL2",midiVEL[2])
           savec:set("midiVEL3",midiVEL[3])
@@ -3066,7 +3133,6 @@ function enc(n,delta)
     menupos = 1
     numpixsel = numpix
     styleselecttemp = styleselect
-    mscaletemp = mscale
     initialtemp = initial
   end
   if (page == 1) then
@@ -3166,17 +3232,59 @@ function enc(n,delta)
   end
   if (page == 2) then
     if(n == 2) then
-      menupos = util.clamp(menupos + delta,1,18)
+      menupos = util.clamp(menupos + delta,1,24)
       lastmenupos = menupos
+      if(menupos < 1 or menupos > 8) then
+        scalefade = 0
+      end
+      if(scalefade > 0 and (menupos > 1 and menupos < 9)) then
+        scalefade = 24
+      end
     end
     if(n == 3) then
       if (menupos == 1) then
         styleselecttemp = util.clamp(styleselecttemp+delta,1,#styles)
       end
+      if (menupos > 1 and menupos < 9) then
+        scalefade = 24
+      end
       if (menupos == 2) then
-        mscaletemp = util.clamp(mscaletemp+delta,1,41)
+        mscale[1] = util.clamp(mscale[1]+delta,1,41)
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
       end
       if (menupos == 3) then
+        mscale[2] = util.clamp(mscale[2]+delta,1,41)
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+      end
+      if (menupos == 4) then 
+        mscale[3] = util.clamp(mscale[3]+delta,1,41)
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+      end
+      if (menupos == 5) then
+        mscale[4] = util.clamp(mscale[4]+delta,1,41)
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+      end
+      if (menupos == 6) then
+        mscale[5] = util.clamp(mscale[5]+delta,1,41)
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+      end
+      if(menupos == 7) then
+        mscale[6] = util.clamp(mscale[6]+delta,1,41)
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
+      end
+      if(menupos == 8) then
+        mscaletemp = util.clamp(mscaletemp+delta,1,41)
+        for a = 1,6 do
+          mscale[a] = mscaletemp
+        end
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+      end
+      if (menupos == 9) then
         low[1] = util.clamp(low[1]+delta,-2,127)
         if (low[1] < 0) then
           key1 = 1
@@ -3187,9 +3295,9 @@ function enc(n,delta)
           else
             key1 = 0
         end
-        scale1 = music.generate_scale(low[1],mscale,octaves[1])
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
       end
-      if (menupos == 4) then
+      if (menupos == 10) then
         low[2] = util.clamp(low[2]+delta,-2,127)
         if (low[2]  < 0) then
           key2 = 1
@@ -3200,9 +3308,9 @@ function enc(n,delta)
           else
             key2 = 0
         end
-        scale2 = music.generate_scale(low[2],mscale,octaves[2])
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
       end
-      if (menupos == 5) then
+      if (menupos == 11) then
         low[3] = util.clamp(low[3]+delta,-2,127)
         if (low[3]  < 0) then
           key3 = 1
@@ -3213,9 +3321,9 @@ function enc(n,delta)
           else
             key3 = 0
         end
-        scale3 = music.generate_scale(low[3],mscale,octaves[3])
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
       end
-      if (menupos == 6) then
+      if (menupos == 12) then
         low[4] = util.clamp(low[4]+delta,-2,127)
         if (low[4]  < 0) then
           key4 = 1
@@ -3226,9 +3334,9 @@ function enc(n,delta)
           else
             key4 = 0
         end
-        scale4 = music.generate_scale(low[4],mscale,octaves[4])
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
       end
-      if (menupos == 7 ) then
+      if (menupos == 13) then
         low[5] = util.clamp(low[5]+delta,-2,127)
         if (low[5]  < 0) then
           key5 = 1
@@ -3239,9 +3347,9 @@ function enc(n,delta)
           else
             key5 = 0
         end
-        scale5 = music.generate_scale(low[5],mscale,octaves[5])
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
       end
-      if (menupos == 8) then
+      if (menupos == 14) then
         low[6] = util.clamp(low[6]+delta,-2,127)
         if (low[6]  < 0) then
           key6 = 1
@@ -3252,9 +3360,9 @@ function enc(n,delta)
           else
             key6 = 0
         end
-        scale6 = music.generate_scale(low[6],mscale,octaves[6])
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
       end
-      if (menupos == 9) then
+      if (menupos == 15) then
         lowmain = util.clamp(lowmain +delta,-2,127)
         key1 = 0
         key2 = 0
@@ -3293,56 +3401,56 @@ function enc(n,delta)
           low[5] = 0
           low[6] = 0
         end
-        scale1 = music.generate_scale(low[1],mscale,octaves[1])
-        scale2 = music.generate_scale(low[2],mscale,octaves[2])
-        scale3 = music.generate_scale(low[3],mscale,octaves[3])
-        scale4 = music.generate_scale(low[4],mscale,octaves[4])
-        scale5 = music.generate_scale(low[5],mscale,octaves[5])
-        scale6 = music.generate_scale(low[6],mscale,octaves[6])
-      end
-      if (menupos == 10) then
-        octaves[1] = util.clamp(octaves[1]+delta,1,8)
-        scale1 = music.generate_scale(low[1],mscale,octaves[1])
-      end
-      if (menupos == 11) then
-        octaves[2] = util.clamp(octaves[2]+delta,1,8)
-        scale2 = music.generate_scale(low[2],mscale,octaves[2])
-      end
-      if (menupos == 12) then
-        octaves[3] = util.clamp(octaves[3]+delta,1,8)
-        scale3 = music.generate_scale(low[3],mscale,octaves[3])
-      end
-      if (menupos == 13) then
-        octaves[4] = util.clamp(octaves[4]+delta,1,8)
-        scale4 = music.generate_scale(low[4],mscale,octaves[4])
-      end
-      if (menupos == 14) then
-        octaves[5] = util.clamp(octaves[5]+delta,1,8)
-        scale5 = music.generate_scale(low[5],mscale,octaves[5])
-      end
-      if (menupos == 15) then
-        octaves[6] = util.clamp(octaves[6]+delta,1,8)
-        scale6 = music.generate_scale(low[6],mscale,octaves[6])
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
       end
       if (menupos == 16) then
-        octavesmain = util.clamp(octavesmain + delta,1,8)
-        octaves[1] = octavesmain
-        scale1 = music.generate_scale(low[1],mscale,octaves[1])
-        octaves[2] = octavesmain
-        scale2 = music.generate_scale(low[2],mscale,octaves[2])
-        octaves[3] = octavesmain
-        scale3 = music.generate_scale(low[3],mscale,octaves[3])
-        octaves[4] = octavesmain
-        scale4 = music.generate_scale(low[4],mscale,octaves[4])
-        octaves[5] = octavesmain
-        scale5 = music.generate_scale(low[5],mscale,octaves[5])
-        octaves[6] = octavesmain
-        scale6 = music.generate_scale(low[6],mscale,octaves[6])
+        octaves[1] = util.clamp(octaves[1]+delta,1,8)
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
       end
       if (menupos == 17) then
-        loadtext = util.clamp(loadtext+delta,1,#loading)
+        octaves[2] = util.clamp(octaves[2]+delta,1,8)
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
       end
       if (menupos == 18) then
+        octaves[3] = util.clamp(octaves[3]+delta,1,8)
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+      end
+      if (menupos == 19) then
+        octaves[4] = util.clamp(octaves[4]+delta,1,8)
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+      end
+      if (menupos == 20) then
+        octaves[5] = util.clamp(octaves[5]+delta,1,8)
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+      end
+      if (menupos == 21) then
+        octaves[6] = util.clamp(octaves[6]+delta,1,8)
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
+      end
+      if (menupos == 22) then
+        octavesmain = util.clamp(octavesmain + delta,1,8)
+        octaves[1] = octavesmain
+        scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+        octaves[2] = octavesmain
+        scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+        octaves[3] = octavesmain
+        scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+        octaves[4] = octavesmain
+        scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+        octaves[5] = octavesmain
+        scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+        octaves[6] = octavesmain
+        scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
+      end
+      if (menupos == 23) then
+        loadtext = util.clamp(loadtext+delta,1,#loading)
+      end
+      if (menupos == 24) then
         savetext = util.clamp(savetext+delta,1,#saving)
       end
     end
