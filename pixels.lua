@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.4
+-- V1.5
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -70,28 +70,37 @@
 -- setting will allow you to 
 -- manually control the root
 -- note with an external MIDI
--- keyboard.
+-- keyboard. k = keyed, 
+-- k&m = muted until keyed.
 --
 -- pixels screen
 --
 -- take control of your 
 -- travelers! Set their initial 
--- state, trigger probability, 
--- midi velocity and midi channel.
--- only need one pixel? ok ... 
--- fine, but it could be lonely 
--- out there.
+-- state, mute group, life state, 
+-- trigger probability, midi
+-- velocity and channel. only
+-- need one pixel? ok ... fine 
+-- but it could be lonely out 
+-- there.
 --
 -- encoder 1 = select option
 -- encoder 2 = adjust option
 -- key 1 = HOLD : exit menu 
--- key 3 = confirm selection of
---       initial state & number
---       of pixels.
+-- key 2 = enable mute group 1
+-- key 3 = enable mute group 2
+--         & confirm selection
+--         of initial state 
 --
 -- HINT! 
 -- going below 0 on midi velocity
 -- will get you random numbers!
+--
+-- HINTY HINT!
+-- pressing k2 or k3 while 
+-- selecting anything other than
+-- "initial state" will activate 
+-- mute group 1 or 2 respectively.
 --
 -- synth I screen
 --
@@ -205,6 +214,18 @@ local key6 = 0
 
 --Params
 savea = paramset.new()
+savea:add_number("mutegroup1")
+savea:add_number("mutegroup2")
+savea:add_number("mutegroup3")
+savea:add_number("mutegroup4")
+savea:add_number("mutegroup5")
+savea:add_number("mutegroup6")
+savea:add_number("pixelon1")
+savea:add_number("pixelon2")
+savea:add_number("pixelon3")
+savea:add_number("pixelon4")
+savea:add_number("pixelon5")
+savea:add_number("pixelon6")
 savea:add_number("wayfinder1")
 savea:add_number("wayfinder2")
 savea:add_number("wayfinder3")
@@ -241,7 +262,6 @@ savea:add_number("stepdiv4")
 savea:add_number("stepdiv5")
 savea:add_number("stepdiv6")
 savea:add_number("stepdiv1")
-savea:add_number("numpix")
 savea:add_number("trigprob1")
 savea:add_number("trigprob2")
 savea:add_number("trigprob3")
@@ -329,6 +349,18 @@ savea:add_number("tempsynth4")
 savea:add_number("tempsynth5")
 savea:add_number("tempsynth6")
 saveb = paramset.new()
+saveb:add_number("mutegroup1")
+saveb:add_number("mutegroup2")
+saveb:add_number("mutegroup3")
+saveb:add_number("mutegroup4")
+saveb:add_number("mutegroup5")
+saveb:add_number("mutegroup6")
+saveb:add_number("pixelon1")
+saveb:add_number("pixelon2")
+saveb:add_number("pixelon3")
+saveb:add_number("pixelon4")
+saveb:add_number("pixelon5")
+saveb:add_number("pixelon6")
 saveb:add_number("wayfinder1")
 saveb:add_number("wayfinder2")
 saveb:add_number("wayfinder3")
@@ -365,7 +397,6 @@ saveb:add_number("stepdiv4")
 saveb:add_number("stepdiv5")
 saveb:add_number("stepdiv6")
 saveb:add_number("stepdiv1")
-saveb:add_number("numpix")
 saveb:add_number("trigprob1")
 saveb:add_number("trigprob2")
 saveb:add_number("trigprob3")
@@ -453,6 +484,18 @@ saveb:add_number("tempsynth4")
 saveb:add_number("tempsynth5")
 saveb:add_number("tempsynth6")
 savec = paramset.new()
+savec:add_number("mutegroup1")
+savec:add_number("mutegroup2")
+savec:add_number("mutegroup3")
+savec:add_number("mutegroup4")
+savec:add_number("mutegroup5")
+savec:add_number("mutegroup6")
+savec:add_number("pixelon1")
+savec:add_number("pixelon2")
+savec:add_number("pixelon3")
+savec:add_number("pixelon4")
+savec:add_number("pixelon5")
+savec:add_number("pixelon6")
 savec:add_number("wayfinder1")
 savec:add_number("wayfinder2")
 savec:add_number("wayfinder3")
@@ -489,7 +532,6 @@ savec:add_number("stepdiv4")
 savec:add_number("stepdiv5")
 savec:add_number("stepdiv6")
 savec:add_number("stepdiv1")
-savec:add_number("numpix")
 savec:add_number("trigprob1")
 savec:add_number("trigprob2")
 savec:add_number("trigprob3")
@@ -613,6 +655,9 @@ local scale5 = {}
 local scale6 = {}
 
 --Pixels
+local mutegroup = {0,0,0,0,0,0}
+local mutegrouptemp = 0
+local pixelon = {1,1,1,1,1,1}
 local wayfinder =  {0,0,0,0,0,0}
 local iwayfinder = {-1,-1,-1,-1,-1,-1,  37,45,52,22,15,7 ,  45,30,0 ,-1,-1,15,   0, 0, 0,30,  30, 30,  7,22 ,52, 37,0 ,30 ,   0, 0 , 0, 0,  0,  0,  -1,-1,-1,-1,-1,-1,   -1, -1,  -1, -1, -1, -1,   15, 15, 15, 15, 15,  15}
 local ipixX =      { 0, 0, 0, 0, 0, 0,  63,64,65,63,64,65,  64,48,80,63,65,64,  10,10,10,118,118,118,  0,127,0 ,127, 0,127,   2, 25,50,75,100,125,  63,63,63,63,63,63,  11, 32 , 53, 74, 95, 116,  15, 29, 56, 70, 97, 115}
@@ -620,7 +665,6 @@ local ipixY =      { 0, 0, 0, 0, 0, 0,  31,31,31,32,32,32,  16,32,32,32,32,48,  
 local ipixDX =     { 0, 0, 0, 0, 0, 0,  -1, 0, 1,-1, 0, 1,  0 ,-1, 1,0 ,0 ,0 ,   1, 1, 1,-1 ,-1 ,-1 ,  1,-1 ,1 , -1, 1,-1 ,   1, 1 , 1, 1, 1 ,  1,   0, 0, 0, 0, 0, 0,   0,  0,   0,  0,  0,  0,   0 ,  0,  0,  0,  0,   0}
 local ipixDY =     { 0, 0, 0, 0, 0, 0,  -1,-1,-1, 1, 1, 1,  -1, 0, 0,0 ,0, 1 ,  0, 0,  0,0 , 0 , 0,    1,  1,-1, -1, 0, 0 ,   0, 0 , 0, 0, 0 ,  0,   0, 0, 0, 0, 0, 0,   0,  0,   0,  0,  0,  0,   1 ,  1,  1,  1,  1,   1}
 local istepdiv=    { 1, 1, 1, 1, 1, 1,   8, 9, 10,10,9, 8,  8 ,10,11, 6,10, 9,  12, 7,10, 12,  7,10,   9, 9 ,11, 11,10, 7 ,   11,11,11,12,12 , 10,   7, 8, 9,10,11,12,   9,  9,   9,  9,  9,  9,   13, 11, 12, 8 , 12,  14}
-local numpix = 6
 local numpixsel = 6
 local thispix = 1
 local trigprob = {100,100,100,100,100,100}
@@ -817,7 +861,7 @@ function transport(state)
   if (state == 1) then
     startbeat()
     midi_signal_out:start()
-    for a = 1,numpix do
+    for a = 1,6 do
       play(pixCol[math.floor(pixX[a])][math.floor(pixY[a])],a)
     end
   end
@@ -825,8 +869,8 @@ end
 
 --let's have a function for moving pixels around the screen
 function move(who)
-  pulse[who] = 15
-  if(who<=numpix) then
+  if(pixelon[who] == 1) then 
+    pulse[who] = 15
     pixX[who] = pixX[who] + pixDX[who]
     if (pixX[who] > 127) then
       pixX[who] = 0
@@ -913,7 +957,8 @@ function redraw()
         screen.close()
         screen.stroke()
     end
-    for j=1,numpix do
+    for j=1,6 do
+      
       if (size[j] > 1 and drawing == 0) then
         screen.rect(pixX[j] - math.floor(size[j]/2)-1,pixY[j]-math.floor(size[j] /2)-1,size[j]+2,size[j]+2)
         screen.level(util.clamp(size[j],0,15))
@@ -923,25 +968,31 @@ function redraw()
         size[j] = size[j] - 1
         screen.fill(0,0,0)
       end
-      if (size[j] == 1 and drawing == 0) then
-        screen.pixel(math.floor(pixX[j]),math.floor(pixY[j]))
-        screen.level(util.clamp(math.floor(pulse[j]),0,15))
-        screen.fill(0,0,0)
-      end
-      if(drawing == 0) then
-        pulseinc[j] = (16/12) / (60/tempo) /  stepdivamount[stepdiv[j]] 
-        pulse[j] = pulse[j] - pulseinc[j]
-        if (pulse[j] < 0) then
-          pulse[j] = 15
+      if(pixelon[j] == 1) then
+        if (size[j] == 1 and drawing == 0) then
+          screen.pixel(math.floor(pixX[j]),math.floor(pixY[j]))
+          screen.level(util.clamp(math.floor(pulse[j]),0,15))
+          screen.fill(0,0,0)
+        end
+        if(drawing == 0) then
+          pulseinc[j] = (16/12) / (60/tempo) /  stepdivamount[stepdiv[j]] 
+          pulse[j] = pulse[j] - pulseinc[j]
+          if (pulse[j] < 0) then
+            pulse[j] = 15
+          end
         end
       end
     end
     if(wordblast > 0 and drawing == 0) then
+      isiton = ""
+      if(pixelon[thispix] == 0) then
+        isiton = " off"
+      end
       screen.level(util.clamp(wordblast,0,15))
       screen.font_face(1)
       screen.font_size(math.floor((wordblast/2)+12))
       screen.move(wordblast + 36,32)
-      screen.text(word)
+      screen.text(word..isiton)
       wordblast = wordblast - 1
     end
   end
@@ -1250,222 +1301,366 @@ function redraw()
     screen.level(math.floor(wordcol1))
     screen.font_face(1)
     screen.font_size(8)
-    screen.move(100,8)
+    screen.move(103,8)
     screen.text("pixels")
     screen.level(math.floor(wordcol2))
-    screen.move(101,9)
+    screen.move(104,9)
     screen.text("pixels")
     screen.level(math.floor(wordcol3))
-    screen.move(102,10)
+    screen.move(105,10)
     screen.text("pixels")
     screen.level(3)
     screen.move(2,10)
-    screen.text("number of pixels " .. numpixsel)
-    screen.move(2,30)
-    screen.text("trig %")
-    screen.move(37,30)
-    screen.text(trigprob[1])
-    screen.move(52,30)
-    screen.text(trigprob[2])
-    screen.move(67,30)
-    screen.text(trigprob[3])
-    screen.move(83,30)
-    screen.text(trigprob[4])
-    screen.move(97,30)
-    screen.text(trigprob[5])
-    screen.move(112,30)
-    screen.text(trigprob[6])
-    screen.move(2,20)
     screen.text("initial state " .. initialword[initialtemp])
+    screen.move(2,20)
+    screen.text("group")
+    screen.move(37,20)
+    screen.text(mutegroup[1])
+    screen.move(52,20)
+    screen.text(mutegroup[2])
+    screen.move(67,20)
+    screen.text(mutegroup[3])
+    screen.move(83,20)
+    screen.text(mutegroup[4])
+    screen.move(97,20)
+    screen.text(mutegroup[5])
+    screen.move(112,20)
+    screen.text(mutegroup[6])
+    screen.move(2,30)
+    screen.text("alive")
+    screen.move(37,30)
+    if(pixelon[1] == 0) then
+      screen.text("X")
+      else
+        screen.text("O")
+    end
+    screen.move(52,30)
+    if(pixelon[2] == 0) then
+      screen.text("X")
+      else
+        screen.text("O")
+    end
+    screen.move(67,30)
+    if(pixelon[3] == 0) then
+      screen.text("X")
+      else
+        screen.text("O")
+    end
+    screen.move(83,30)
+    if(pixelon[4] == 0) then
+      screen.text("X")
+      else
+        screen.text("O")
+    end
+    screen.move(97,30)
+    if(pixelon[5] == 0) then
+      screen.text("X")
+      else
+        screen.text("O")
+    end   
+    screen.move(112,30)
+    if(pixelon[6] == 0) then
+      screen.text("X")
+      else
+        screen.text("O")
+    end  
+    
     screen.move(2,40)
-    screen.text("midi vel")
+    screen.text("trig %")
     screen.move(37,40)
+    screen.text(trigprob[1])
+    screen.move(52,40)
+    screen.text(trigprob[2])
+    screen.move(67,40)
+    screen.text(trigprob[3])
+    screen.move(83,40)
+    screen.text(trigprob[4])
+    screen.move(97,40)
+    screen.text(trigprob[5])
+    screen.move(112,40)
+    screen.text(trigprob[6])
+    screen.move(2,50)
+    screen.text("midi vel")
+    screen.move(37,50)
     midiVELtext = midiVEL[1]
     if (midiVEL[1] == -1) then
       midiVELtext = "rnd"
     end
     screen.text(midiVELtext)
-    screen.move(52,40)
+    screen.move(52,50)
     midiVELtext = midiVEL[2]
     if (midiVEL[2] == -1) then
       midiVELtext = "rnd"
     end
     screen.text(midiVELtext)
-    screen.move(67,40)
+    screen.move(67,50)
     midiVELtext = midiVEL[3]
     if (midiVEL[3] == -1) then
       midiVELtext = "rnd"
     end
     screen.text(midiVELtext)
-    screen.move(83,40)
+    screen.move(83,50)
     midiVELtext = midiVEL[4]
     if (midiVEL[4] == -1) then
       midiVELtext = "rnd"
     end
     screen.text(midiVELtext)
-    screen.move(97,40)
+    screen.move(97,50)
     midiVELtext = midiVEL[5]
     if (midiVEL[5] == -1) then
       midiVELtext = "rnd"
     end
     screen.text(midiVELtext)
-    screen.move(112,40)
+    screen.move(112,50)
     midiVELtext = midiVEL[6]
     if (midiVEL[6] == -1) then
       midiVELtext = "rnd"
     end
     screen.text(midiVELtext)
-    screen.move(2,50)
+    screen.move(2,60)
     screen.text("midi ch")
-    screen.move(37,50)
+    screen.move(37,60)
     screen.text(midiCH[1])
-    screen.move(52,50)
+    screen.move(52,60)
     screen.text(midiCH[2])
-    screen.move(67,50)
+    screen.move(67,60)
     screen.text(midiCH[3])
-    screen.move(83,50)
+    screen.move(83,60)
     screen.text(midiCH[4])
-    screen.move(97,50)
+    screen.move(97,60)
     screen.text(midiCH[5])
-    screen.move(112,50)
+    screen.move(112,60)
     screen.text(midiCH[6])
+    if (menupos > 1 and menupos < 9) then
+      screen.level(15)
+      screen.move(3,21)
+      screen.text("group")
+    end
+    
     if(menupos == 1) then
       screen.level(15)
       screen.move(3,11)
-      screen.text("number of pixels " .. numpixsel)
-    end
-    if(menupos == 2) then
-      screen.level(15)
-      screen.move(3,21)
       screen.text("initial state " .. initialword[initialtemp])
     end
-    if(menupos > 2 and menupos < 10) then
+    if(menupos == 2 or menupos == 8) then
+      screen.level(15)
+      screen.move(38,21)
+      screen.text(mutegroup[1])
+    end
+    if(menupos == 3 or menupos == 8) then
+      screen.level(15)
+      screen.move(53,21)
+      screen.text(mutegroup[2])
+    end
+    if(menupos == 4 or menupos == 8) then
+      screen.level(15)
+      screen.move(68,21)
+      screen.text(mutegroup[3])
+    end
+    if(menupos == 5 or menupos == 8) then
+      screen.level(15)
+      screen.move(83,21)
+      screen.text(mutegroup[4])
+    end
+    if(menupos == 6 or menupos == 8) then
+      screen.level(15)
+      screen.move(98,21)
+      screen.text(mutegroup[5])
+    end
+    if(menupos == 7 or menupos == 8) then
+      screen.level(15)
+      screen.move(113,21)
+      screen.text(mutegroup[6])
+    end
+    if(menupos > 8 and menupos < 16) then
       screen.level(15)
       screen.move(3,31)
-      screen.text("trig %")
+      screen.text("alive")
     end
-    if(menupos == 3 or menupos == 9) then
+    if(menupos == 9 or menupos == 15) then
       screen.level(15)
       screen.move(38,31)
-      screen.text(trigprob[1])
+      if(pixelon[1] == 0) then
+        screen.text("X")
+        else
+          screen.text("O")
+        end
     end
-    if(menupos == 4 or menupos == 9) then
+    if(menupos == 10 or menupos == 15) then
       screen.level(15)
       screen.move(53,31)
-      screen.text(trigprob[2])
+      if(pixelon[2] == 0) then
+        screen.text("X")
+        else
+          screen.text("O")
+        end
     end
-    if(menupos == 5 or menupos == 9) then
+    if(menupos == 11 or menupos == 15) then
       screen.level(15)
       screen.move(68,31)
-      screen.text(trigprob[3])
+      if(pixelon[3] == 0) then
+        screen.text("X")
+        else
+          screen.text("O")
+        end
     end
-    if(menupos == 6 or menupos == 9) then
+    
+    if(menupos == 12 or menupos == 15) then
       screen.level(15)
       screen.move(83,31)
-      screen.text(trigprob[4])
+      if(pixelon[4] == 0) then
+        screen.text("X")
+        else
+          screen.text("O")
+        end
     end
-    if(menupos == 7 or menupos == 9) then
+    
+    if(menupos == 13 or menupos == 15) then
       screen.level(15)
       screen.move(98,31)
-      screen.text(trigprob[5])
+      if(pixelon[5] == 0) then
+        screen.text("X")
+        else
+          screen.text("O")
+        end
     end
-    if(menupos == 8 or menupos == 9) then
+    
+    if(menupos == 14 or menupos == 15) then
       screen.level(15)
       screen.move(113,31)
-      screen.text(trigprob[6])
+      if(pixelon[6] == 0) then
+        screen.text("X")
+        else
+          screen.text("O")
+        end
     end
-    if(menupos > 9 and menupos < 17) then
+    if(menupos > 15 and menupos < 23) then
       screen.level(15)
       screen.move(3,41)
-      screen.text("midi vel")
+      screen.text("trig %")
     end
-    if(menupos == 10 or menupos == 16) then
+    if(menupos == 16 or menupos == 22) then
       screen.level(15)
       screen.move(38,41)
+      screen.text(trigprob[1])
+    end
+    if(menupos == 17 or menupos == 22) then
+      screen.level(15)
+      screen.move(53,41)
+      screen.text(trigprob[2])
+    end
+    if(menupos == 18 or menupos == 22) then
+      screen.level(15)
+      screen.move(68,41)
+      screen.text(trigprob[3])
+    end
+    if(menupos == 19 or menupos == 22) then
+      screen.level(15)
+      screen.move(83,41)
+      screen.text(trigprob[4])
+    end
+    if(menupos == 20 or menupos == 22) then
+      screen.level(15)
+      screen.move(98,41)
+      screen.text(trigprob[5])
+    end
+    if(menupos == 21 or menupos == 22) then
+      screen.level(15)
+      screen.move(113,41)
+      screen.text(trigprob[6])
+    end
+    if(menupos > 22 and menupos < 30) then
+      screen.level(15)
+      screen.move(3,51)
+      screen.text("midi vel")
+    end
+    if(menupos == 23 or menupos == 29) then
+      screen.level(15)
+      screen.move(38,51)
       midiVELtext = midiVEL[1]
       if (midiVEL[1] == -1) then
         midiVELtext = "rnd"
       end
       screen.text(midiVELtext)
     end
-    if(menupos == 11 or menupos == 16) then
+    if(menupos == 24 or menupos == 29) then
       screen.level(15)
-      screen.move(53,41)
+      screen.move(53,51)
       midiVELtext = midiVEL[2]
       if (midiVEL[2] == -1) then
         midiVELtext = "rnd"
       end
       screen.text(midiVELtext)
     end
-    if(menupos ==12 or menupos == 16) then
+    if(menupos == 25 or menupos == 29) then
       screen.level(15)
-      screen.move(68,41)
+      screen.move(68,51)
       midiVELtext = midiVEL[3]
       if (midiVEL[3] == -1) then
         midiVELtext = "rnd"
       end
       screen.text(midiVELtext)
     end
-    if(menupos == 13 or menupos == 16) then
+    if(menupos == 26 or menupos == 29) then
       screen.level(15)
-      screen.move(83,41)
+      screen.move(83,51)
       midiVELtext = midiVEL[4]
       if (midiVEL[4] == -1) then
         midiVELtext = "rnd"
       end
       screen.text(midiVELtext)
     end
-    if(menupos == 14 or menupos == 16) then
+    if(menupos == 27 or menupos == 29) then
       screen.level(15)
-      screen.move(98,41)
+      screen.move(98,51)
       midiVELtext = midiVEL[5]
       if (midiVEL[5] == -1) then
         midiVELtext = "rnd"
       end
       screen.text(midiVELtext)
     end
-    if(menupos == 15 or menupos == 16) then
+    if(menupos == 28 or menupos == 29) then
       screen.level(15)
-      screen.move(113,41)
+      screen.move(113,51)
       midiVELtext = midiVEL[6]
       if (midiVEL[6] == -1) then
         midiVELtext = "rnd"
       end
       screen.text(midiVELtext)
     end
-    if(menupos > 16 and menupos < 24) then
+    if(menupos > 29 and menupos < 37) then
       screen.level(15)
-      screen.move(3,51)
+      screen.move(3,61)
       screen.text("midi ch")
     end
-    if(menupos == 17 or menupos == 23) then
+    if(menupos == 30 or menupos == 36) then
       screen.level(15)
-      screen.move(38,51)
+      screen.move(38,61)
       screen.text(midiCH[1])
     end
-    if(menupos == 18 or menupos == 23) then
+    if(menupos == 31 or menupos == 36) then
       screen.level(15)
-      screen.move(53,51)
+      screen.move(53,61)
       screen.text(midiCH[2])
     end
-    if(menupos == 19 or menupos == 23) then
+    if(menupos == 32 or menupos == 36) then
       screen.level(15)
-      screen.move(68,51)
+      screen.move(68,61)
       screen.text(midiCH[3])
     end
-    if(menupos == 20 or menupos == 23) then
+    if(menupos == 33 or menupos == 36) then
       screen.level(15)
-      screen.move(83,51)
+      screen.move(83,61)
       screen.text(midiCH[4])
     end
-    if(menupos == 21 or menupos == 23) then
+    if(menupos == 34 or menupos == 36) then
       screen.level(15)
-      screen.move(98,51)
+      screen.move(98,61)
       screen.text(midiCH[5])
     end
-    if(menupos == 22 or menupos == 23) then
+    if(menupos == 35 or menupos == 36) then
       screen.level(15)
-      screen.move(113,51)
+      screen.move(113,61)
       screen.text(midiCH[6])
     end
   end
@@ -2269,7 +2464,7 @@ function redraw()
   screen.fill(0,0,0)
   screen.update()
 
-  if(page == 1 and state == 1) then
+  --[[if(state == 1) then
     if(piccount < 1000) then
       _norns.screen_export_png("/home/we/dust/code/pixels/pics/pic"..piccount..".png")
       piccount = piccount + 1
@@ -2282,8 +2477,12 @@ function redraw()
       _norns.screen_export_png("/home/we/dust/code/pixels/pics3/pic"..piccount..".png")
       piccount = piccount + 1
     end
+    if(piccount > 2999 and piccount < 4000) then
+      _norns.screen_export_png("/home/we/dust/code/pixels/pics4/pic"..piccount..".png")
+      piccount = piccount + 1
+    end
   end
-
+--]]
 
 end
   
@@ -2297,7 +2496,6 @@ function key(n,id)
       page = 1
     end
     menupos = lastmenupos
-    numpixsel = numpix
     styleselecttemp = styleselect
     initialtemp = initial
   end
@@ -2366,10 +2564,11 @@ function key(n,id)
           if (f~=nil) then 
             pixCol = tab.load("/home/we/dust/code/pixels/pixel_data_a.txt")
             savea:read("/home/we/dust/code/pixels/savea.pset")
-            numpix = savea:get("numpix")
             styleselect = savea:get("styleselect")
             tempo = savea:get("tempo")
             for a=1,6 do
+              mutegroup[a] = savea:get("mutegroup"..a)
+              pixelon[a] = savea:get("pixelon"..a)
               mscale[a] = savea:get("mscale"..a)
               tempsynth[a] = savea:get("tempsynth"..a)
               pixX[a] = savea:get("pixX"..a)
@@ -2407,11 +2606,12 @@ function key(n,id)
           if (f ~= nil) then
             pixCol = tab.load("/home/we/dust/code/pixels/pixel_data_b.txt")
             saveb:read("/home/we/dust/code/pixels/saveb.pset")
-            numpix = saveb:get("numpix")
             styleselect = saveb:get("styleselect")
             tempo = saveb:get("tempo")
             for a=1,6 do
-              mscale[a] = savea:get("mscale"..a)
+              mutegroup[a] = saveb:get("mutegroup"..a)
+              pixelon[a] = saveb:get("pixelon"..a)
+              mscale[a] = saveb:get("mscale"..a)
               tempsynth[a] = saveb:get("tempsynth"..a)
               pixX[a] = saveb:get("pixX"..a)
               pixY[a] = saveb:get("pixY"..a)
@@ -2448,11 +2648,12 @@ function key(n,id)
           if (f ~= nil) then
             pixCol = tab.load("/home/we/dust/code/pixels/pixel_data_c.txt")
             savec:read("/home/we/dust/code/pixels/savec.pset")
-            numpix = savec:get("numpix")
             styleselect = savec:get("styleselect")
             tempo = savec:get("tempo")
             for a=1,6 do
-              mscale[a] = savea:get("mscale"..a)
+              mutegroup[a] = savec:get("mutegroup"..a)
+              pixelon[a] = savec:get("pixelon"..a)
+              mscale[a] = savec:get("mscale"..a)
               tempsynth[a] = savec:get("tempsynth"..a)
               pixX[a] = savec:get("pixX"..a)
               pixY[a] = savec:get("pixY"..a)
@@ -2488,6 +2689,18 @@ function key(n,id)
       if(menupos == 24) then
         if(savetext == 1) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_a.txt")
+          savea:set("mutegroup1",mutegroup[1])
+          savea:set("mutegroup2",mutegroup[2])
+          savea:set("mutegroup3",mutegroup[3])
+          savea:set("mutegroup4",mutegroup[4])
+          savea:set("mutegroup5",mutegroup[5])
+          savea:set("mutegroup6",mutegroup[6])
+          savea:set("pixelon1",pixelon[1])
+          savea:set("pixelon2",pixelon[2])
+          savea:set("pixelon3",pixelon[3])
+          savea:set("pixelon4",pixelon[4])
+          savea:set("pixelon5",pixelon[5])
+          savea:set("pixelon6",pixelon[6])
           savea:set("pixX1",pixX[1])
           savea:set("pixX2",pixX[2])
           savea:set("pixX3",pixX[3])
@@ -2518,7 +2731,6 @@ function key(n,id)
           savea:set("stepdiv5",stepdiv[5])
           savea:set("stepdiv6",stepdiv[6])
           savea:set("stepdiv1",stepdiv[1])
-          savea:set("numpix",numpix)
           savea:set("trigprob1",trigprob[1])
           savea:set("trigprob2",trigprob[2])
           savea:set("trigprob3",trigprob[3])
@@ -2615,6 +2827,18 @@ function key(n,id)
         end
         if(savetext == 2) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_b.txt")
+          saveb:set("mutegroup1",mutegroup[1])
+          saveb:set("mutegroup2",mutegroup[2])
+          saveb:set("mutegroup3",mutegroup[3])
+          saveb:set("mutegroup4",mutegroup[4])
+          saveb:set("mutegroup5",mutegroup[5])
+          saveb:set("mutegroup6",mutegroup[6])
+          saveb:set("pixelon1",pixelon[1])
+          saveb:set("pixelon2",pixelon[2])
+          saveb:set("pixelon3",pixelon[3])
+          saveb:set("pixelon4",pixelon[4])
+          saveb:set("pixelon5",pixelon[5])
+          saveb:set("pixelon6",pixelon[6])
           saveb:set("pixX1",pixX[1])
           saveb:set("pixX2",pixX[2])
           saveb:set("pixX3",pixX[3])
@@ -2645,7 +2869,6 @@ function key(n,id)
           saveb:set("stepdiv5",stepdiv[5])
           saveb:set("stepdiv6",stepdiv[6])
           saveb:set("stepdiv1",stepdiv[1])
-          saveb:set("numpix",numpix)
           saveb:set("trigprob1",trigprob[1])
           saveb:set("trigprob2",trigprob[2])
           saveb:set("trigprob3",trigprob[3])
@@ -2742,6 +2965,18 @@ function key(n,id)
         end
         if(savetext == 3) then
           tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_c.txt")
+          savec:set("mutegroup1",mutegroup[1])
+          savec:set("mutegroup2",mutegroup[2])
+          savec:set("mutegroup3",mutegroup[3])
+          savec:set("mutegroup4",mutegroup[4])
+          savec:set("mutegroup5",mutegroup[5])
+          savec:set("mutegroup6",mutegroup[6])
+          savec:set("pixelon1",pixelon[1])
+          savec:set("pixelon2",pixelon[2])
+          savec:set("pixelon3",pixelon[3])
+          savec:set("pixelon4",pixelon[4])
+          savec:set("pixelon5",pixelon[5])
+          savec:set("pixelon6",pixelon[6])
           savec:set("pixX1",pixX[1])
           savec:set("pixX2",pixX[2])
           savec:set("pixX3",pixX[3])
@@ -2772,7 +3007,6 @@ function key(n,id)
           savec:set("stepdiv5",stepdiv[5])
           savec:set("stepdiv6",stepdiv[6])
           savec:set("stepdiv1",stepdiv[1])
-          savec:set("numpix",numpix)
           savec:set("trigprob1",trigprob[1])
           savec:set("trigprob2",trigprob[2])
           savec:set("trigprob3",trigprob[3])
@@ -2871,74 +3105,44 @@ function key(n,id)
     end
   end
   if (page == 3) then
-    if(n == 3 and id == 1) then
-      if (menupos == 1) then
-        numpix = numpixsel
-        syncbeat()
-        if(numpix ==1) then
-          if(state ==1) then
-            beat1:start()
-          end
-          beat2:stop()
-          beat3:stop()
-          beat4:stop()
-          beat5:stop()
-          beat6:stop()
-        end
-        if(numpix ==2) then
-          if(state == 1) then
-          beat1:start()
-          beat2:start()
-          end
-          beat3:stop()
-          beat4:stop()
-          beat5:stop()
-          beat6:stop()
-        end
-        if(numpix ==3) then
-          if(state == 1) then
-          beat1:start()
-          beat2:start()
-          beat3:start()
-          end
-          beat4:stop()
-          beat5:stop()
-          beat6:stop()
-        end
-        if(numpix ==4) then
-          if(state == 1) then
-          beat1:start()
-          beat2:start()
-          beat3:start()
-          beat4:start()
-          end
-          beat5:stop()
-          beat6:stop()
-        end
-        if(numpix ==5) then
-          if(state == 1) then
-          beat1:start()
-          beat2:start()
-          beat3:start()
-          beat4:start()
-          beat5:start()
-          end
-          beat6:stop()
-        end
-        if(numpix ==6) then
-          if(state == 1) then
-          beat1:start()
-          beat2:start()
-          beat3:start()
-          beat4:start()
-          beat5:start()
-          beat6:start()
+    if(n == 2 and id == 1) then
+      if(menupos > 1) then
+        for a = 1 , 6 do
+          if(mutegroup[a] == 1) then
+            pixelon[a] = 0
           end
         end
       end
-      if (menupos == 2) then
+    end
+    if(n == 2 and id == 0) then
+      if(menupos > 1) then
+        for a = 1 , 6 do
+          if(mutegroup[a] == 1) then
+            pixelon[a] = 1
+          end
+        end
+      end
+    end
+    if(n == 3 and id == 1) then
+      if (menupos == 1) then
         initialcondition(initialtemp)
         initial = initialtemp
+      end
+      if(menupos > 1) then
+        for a = 1 , 6 do
+          if(mutegroup[a] == 2) then
+            pixelon[a] = 0
+          end
+        end
+      end
+    end
+    if(n == 3 and id == 0) then
+      if(menupos > 1) then
+        for a = 1 , 6 do
+          if(mutegroup[a] == 2) then
+            pixelon[a] = 1
+          end
+        end
       end
     end
   end
@@ -3131,7 +3335,6 @@ function enc(n,delta)
     page = util.clamp(page + delta,2,5)
     lastpage = page
     menupos = 1
-    numpixsel = numpix
     styleselecttemp = styleselect
     initialtemp = initial
   end
@@ -3172,7 +3375,9 @@ function enc(n,delta)
       end
       pixX[thispix] = util.clamp(pixX[thispix] + delta,0,127)
       if(drawing == 0) then
-        play(pixCol[  math.floor(pixX[thispix])  ][math.floor(pixY[thispix])],thispix)
+        if(pixelon[thispix] == 1) then
+          play(pixCol[  math.floor(pixX[thispix])  ][math.floor(pixY[thispix])],thispix)
+        end
         size[thispix] = 6
       end
       if(drawing == 1) then
@@ -3202,7 +3407,7 @@ function enc(n,delta)
 
     end
     if (n == 3 and k2 == 1 and drawing == 0) then
-      thispix = util.clamp(thispix + delta,1,numpix)
+      thispix = util.clamp(thispix + delta,1,6)
       wordblast = 8
       word = thispix
       size[thispix] = 6
@@ -3222,7 +3427,9 @@ function enc(n,delta)
     if (n == 3 and k2 == 0 and k3 == 0) then
       pixY[thispix] = util.clamp(pixY[thispix] + delta,0,63)
       if(drawing == 0) then
-        play(pixCol[math.floor(pixX[thispix])][math.floor(pixY[thispix])],thispix)  
+        if(pixelon[thispix] == 1) then
+          play(pixCol[math.floor(pixX[thispix])][math.floor(pixY[thispix])],thispix)  
+        end
         size[thispix] = 6
       end
       if (drawing == 1) then
@@ -3238,7 +3445,7 @@ function enc(n,delta)
         scalefade = 0
       end
       if(scalefade > 0 and (menupos > 1 and menupos < 9)) then
-        scalefade = 24
+        scalefade = 36
       end
     end
     if(n == 3) then
@@ -3457,68 +3664,113 @@ function enc(n,delta)
   end
   if (page == 3) then
     if(n == 2) then
-      menupos = util.clamp(menupos + delta,1,23)
+      menupos = util.clamp(menupos + delta,1,36)
       lastmenupos = menupos
     end
     if(n == 3) then
-      if (menupos == 1) then
-       numpixsel = util.clamp(numpixsel+delta,1,6)
-      end
       if (menupos == 2) then
-        initialtemp = util.clamp(initialtemp + delta, 1,#initialword)
+        mutegroup[1] = util.clamp(mutegroup[1]+delta,0,2)
       end
       if (menupos == 3) then
-       trigprob[1] = util.clamp(trigprob[1]+delta,0,100)
-      end
+        mutegroup[2] = util.clamp(mutegroup[2]+delta,0,2)
+            end
       if (menupos == 4) then
-       trigprob[2] = util.clamp(trigprob[2]+delta,0,100)
-      end
+        mutegroup[3] = util.clamp(mutegroup[3]+delta,0,2)
+          end
       if (menupos == 5) then
-       trigprob[3] = util.clamp(trigprob[3]+delta,0,100)
-      end
+        mutegroup[4] = util.clamp(mutegroup[4]+delta,0,2)
+          end
       if (menupos == 6) then
-       trigprob[4] = util.clamp(trigprob[4]+delta,0,100)
-      end
+        mutegroup[5] = util.clamp(mutegroup[5]+delta,0,2)
+          end
       if (menupos == 7) then
-       trigprob[5] = util.clamp(trigprob[5]+delta,0,100)
+        mutegroup[6] = util.clamp(mutegroup[6]+delta,0,2)
       end
-      if (menupos == 8) then
-       trigprob[6] = util.clamp(trigprob[6]+delta,0,100)
+      if (menupos == 8) then 
+        mutegrouptemp = util.clamp(mutegrouptemp+delta,0,2)
+        for a = 1, 6 do
+          mutegroup[a] = mutegrouptemp
+        end
       end
       if (menupos == 9) then
+        pixelon[1] = util.clamp(pixelon[1]+delta,0,1)
+      end
+      if (menupos == 10) then
+        pixelon[2] = util.clamp(pixelon[2]+delta,0,1)
+      end
+      if (menupos == 11) then
+        pixelon[3] = util.clamp(pixelon[3]+delta,0,1)
+      end
+      if (menupos == 12) then
+        pixelon[4] = util.clamp(pixelon[4]+delta,0,1)
+            end
+      if (menupos == 13) then
+        pixelon[5] = util.clamp(pixelon[5]+delta,0,1)
+          end
+      if (menupos == 14) then
+        pixelon[6] = util.clamp(pixelon[6]+delta,0,1)
+      end
+      if (menupos == 15) then
+        numpixsel = util.clamp(numpixsel+delta,0,1)
+        for a=1,6 do
+          pixelon[a] = numpixsel
+        end
+      end
+      if (menupos == 1) then
+        initialtemp = util.clamp(initialtemp + delta, 1,#initialword)
+      end
+      if (menupos == 16) then
+       trigprob[1] = util.clamp(trigprob[1]+delta,0,100)
+      end
+      if (menupos == 17) then
+       trigprob[2] = util.clamp(trigprob[2]+delta,0,100)
+      end
+      if (menupos == 18) then
+       trigprob[3] = util.clamp(trigprob[3]+delta,0,100)
+      end
+      if (menupos == 19) then
+       trigprob[4] = util.clamp(trigprob[4]+delta,0,100)
+      end
+      if (menupos == 20) then
+       trigprob[5] = util.clamp(trigprob[5]+delta,0,100)
+      end
+      if (menupos == 21) then
+       trigprob[6] = util.clamp(trigprob[6]+delta,0,100)
+      end
+      if (menupos == 22) then
         trigprobmain = util.clamp((trigprobmain) + delta, 1,100)
         for all=1,6 do
           trigprob[all] = trigprobmain
         end
       end
-      if (menupos == 10) then
+      if (menupos == 23) then
         midiVEL[1] = util.clamp(midiVEL[1] + delta, -1,127)
       end
-      if (menupos == 11) then
+      if (menupos == 24) then
         midiVEL[2] = util.clamp(midiVEL[2] + delta, -1,127)
       end
-      if (menupos == 12) then
+      if (menupos == 25) then
         midiVEL[3] = util.clamp(midiVEL[3] + delta, -1,127)
       end
       
-      if (menupos == 13) then
+      if (menupos == 26) then
         midiVEL[4] = util.clamp(midiVEL[4] + delta, -1,127)
       end
       
-      if (menupos == 14) then
+      if (menupos == 27) then
         midiVEL[5] = util.clamp(midiVEL[5] + delta, -1,127)
       end
       
-      if (menupos == 15) then
+      if (menupos == 28) then
         midiVEL[6] = util.clamp(midiVEL[6] + delta, -1,127)
       end
-      if (menupos == 16) then
+      if (menupos == 29) then
         midiVELmain = util.clamp(midiVELmain + delta, -1,127)
         for all=1,6 do
           midiVEL[all] = midiVELmain
         end
       end
-      if (menupos == 17) then
+      if (menupos == 30) then
         for a=1,#notes1 do
           midi_signal_out:note_off(notes1[a],0,midiCH[1])
         end
@@ -3528,7 +3780,7 @@ function enc(n,delta)
         midiCH[1] = util.clamp(midiCH[1] + delta, 1,16)
       end
       
-      if (menupos == 18) then
+      if (menupos == 31) then
       for a=1,#notes2 do
           midi_signal_out:note_off(notes2[a],0,midiCH[2])
         end
@@ -3537,7 +3789,7 @@ function enc(n,delta)
         end
         midiCH[2] = util.clamp(midiCH[2] + delta, 1,16)
       end
-      if (menupos == 19) then
+      if (menupos == 32) then
         for a=1,#notes3 do
           midi_signal_out:note_off(notes3[a],0,midiCH[3])
         end
@@ -3546,7 +3798,7 @@ function enc(n,delta)
         end
         midiCH[3] = util.clamp(midiCH[3] + delta, 1,16)
       end
-      if (menupos == 20) then
+      if (menupos == 33) then
         for a=1,#notes4 do
           midi_signal_out:note_off(notes4[a],0,midiCH[4])
         end
@@ -3555,7 +3807,7 @@ function enc(n,delta)
         end
         midiCH[4] = util.clamp(midiCH[4] + delta, 1,16)
       end
-      if (menupos == 21) then
+      if (menupos == 34) then
         for a=1,#notes5 do
           midi_signal_out:note_off(notes5[a],0,midiCH[5])
         end
@@ -3564,7 +3816,7 @@ function enc(n,delta)
         end
         midiCH[5] = util.clamp(midiCH[5] + delta, 1,16)
       end
-      if (menupos == 22) then
+      if (menupos == 35) then
         for a=1,#notes6 do
           midi_signal_out:note_off(notes6[a],0,midiCH[6])
         end
@@ -3573,7 +3825,7 @@ function enc(n,delta)
         end
         midiCH[6] = util.clamp(midiCH[6] + delta, 1,16)
       end
-      if (menupos == 23) then
+      if (menupos == 36) then
         midiCHmain = util.clamp((midiCHmain) + delta, 1,16)
         for a=1,#notes1 do
           midi_signal_out:note_off(notes1[a],0,midiCH[1])
