@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.5
+-- V1.5.1
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -862,7 +862,9 @@ function transport(state)
     startbeat()
     midi_signal_out:start()
     for a = 1,6 do
-      play(pixCol[math.floor(pixX[a])][math.floor(pixY[a])],a)
+      if(pixelon[a] == 1) then
+        play(pixCol[math.floor(pixX[a])][math.floor(pixY[a])],a)
+      end
     end
   end
 end
@@ -3109,17 +3111,35 @@ function key(n,id)
       if(menupos > 1) then
         for a = 1 , 6 do
           if(mutegroup[a] == 1) then
-            pixelon[a] = 0
+            pixelon[a] = pixelon[a] + 1
+            if(pixelon[a] > 1) then
+              pixelon[a] = 0
+            end
           end
         end
-      end
-    end
-    if(n == 2 and id == 0) then
-      if(menupos > 1) then
-        for a = 1 , 6 do
-          if(mutegroup[a] == 1) then
-            pixelon[a] = 1
-          end
+        if(pixelon[1] == 0) then
+          midi_signal_out:note_off(notes1[1],nil,midiCH[1])
+          table.remove(notes1,1)
+        end
+        if(pixelon[2] == 0) then
+          midi_signal_out:note_off(notes2[1],nil,midiCH[2])
+          table.remove(notes2,1)
+        end
+        if(pixelon[3] == 0) then
+          midi_signal_out:note_off(notes3[1],nil,midiCH[3])
+          table.remove(notes3,1)
+        end
+        if(pixelon[4] == 0) then
+          midi_signal_out:note_off(notes4[1],nil,midiCH[4])
+          table.remove(notes4,1)
+        end
+        if(pixelon[5] == 0) then
+          midi_signal_out:note_off(notes5[1],nil,midiCH[5])
+          table.remove(notes5,1)
+        end
+        if(pixelon[6] == 0) then
+          midi_signal_out:note_off(notes6[1],nil,midiCH[6])
+          table.remove(notes6,1)
         end
       end
     end
@@ -3131,17 +3151,35 @@ function key(n,id)
       if(menupos > 1) then
         for a = 1 , 6 do
           if(mutegroup[a] == 2) then
-            pixelon[a] = 0
+            pixelon[a] = pixelon[a] + 1
+            if(pixelon[a] > 1) then
+              pixelon[a] = 0
+            end
           end
         end
-      end
-    end
-    if(n == 3 and id == 0) then
-      if(menupos > 1) then
-        for a = 1 , 6 do
-          if(mutegroup[a] == 2) then
-            pixelon[a] = 1
-          end
+        if(pixelon[1] == 0) then
+          midi_signal_out:note_off(notes1[1],nil,midiCH[1])
+          table.remove(notes1,1)
+        end
+        if(pixelon[2] == 0) then
+          midi_signal_out:note_off(notes2[1],nil,midiCH[2])
+          table.remove(notes2,1)
+        end
+        if(pixelon[2] == 0) then
+          midi_signal_out:note_off(notes3[1],nil,midiCH[3])
+          table.remove(notes3,1)
+        end
+        if(pixelon[2] == 0) then
+          midi_signal_out:note_off(notes4[1],nil,midiCH[4])
+          table.remove(notes4,1)
+        end
+        if(pixelon[2] == 0) then
+          midi_signal_out:note_off(notes5[1],nil,midiCH[5])
+          table.remove(notes5,1)
+        end
+        if(pixelon[6] == 0) then
+          midi_signal_out:note_off(notes6[1],nil,midiCH[6])
+          table.remove(notes6,1)
         end
       end
     end
@@ -3694,27 +3732,51 @@ function enc(n,delta)
       end
       if (menupos == 9) then
         pixelon[1] = util.clamp(pixelon[1]+delta,0,1)
+        if(pixelon[1] == 0) then
+          midi_signal_out:note_off(notes1[1],nil,midiCH[1])
+          table.remove(notes1,1)
+        end
       end
       if (menupos == 10) then
         pixelon[2] = util.clamp(pixelon[2]+delta,0,1)
+        if(pixelon[2] == 0) then
+          midi_signal_out:note_off(notes2[1],nil,midiCH[2])
+          table.remove(notes2,1)
+        end
       end
       if (menupos == 11) then
         pixelon[3] = util.clamp(pixelon[3]+delta,0,1)
+        if(pixelon[3] == 0) then
+          midi_signal_out:note_off(notes3[1],nil,midiCH[3])
+          table.remove(notes3,1)
+        end
       end
       if (menupos == 12) then
         pixelon[4] = util.clamp(pixelon[4]+delta,0,1)
-            end
+        if(pixelon[4] == 0) then
+          midi_signal_out:note_off(notes4[1],nil,midiCH[4])
+          table.remove(notes4,1)
+        end
+      end
       if (menupos == 13) then
         pixelon[5] = util.clamp(pixelon[5]+delta,0,1)
-          end
+        if(pixelon[5] == 0) then
+          midi_signal_out:note_off(notes5[1],nil,midiCH[5])
+          table.remove(notes5,1)
+        end
+      end
       if (menupos == 14) then
         pixelon[6] = util.clamp(pixelon[6]+delta,0,1)
+        if(pixelon[6] == 0) then
+          midi_signal_out:note_off(notes6[1],nil,midiCH[6])
+          table.remove(notes6,1)
+        end
       end
       if (menupos == 15) then
         numpixsel = util.clamp(numpixsel+delta,0,1)
         for a=1,6 do
           pixelon[a] = numpixsel
-        end
+      end
       end
       if (menupos == 1) then
         initialtemp = util.clamp(initialtemp + delta, 1,#initialword)
