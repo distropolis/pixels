@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.5.1
+-- V1.6
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -45,6 +45,20 @@
 -- a circle, indicating that 
 -- pixel has stopped.
 --
+-- drawing mode
+-- 
+-- from the map screen you
+-- can enter "drawing mode"!
+-- draw any image you want.
+-- set the "style" on the
+-- "landscape" screen to one
+-- of the solid colors at the 
+-- end of the list.
+--
+-- key 2 + key 3 = drawing mode
+-- encoder 1 = brightness/pitch
+-- encoder 2 = x position
+-- encoder 3 = y position
 -- 
 -- landscape screen
 --
@@ -141,14 +155,8 @@
 -- their type. twiddle knobs
 -- and explore sounds.
 --
---        
--- S E C R E T M O D E?
---
--- ?
 -- thanks to @zebra for 
 -- the bangs engine
-
---local start = 0
 
 -- Please forgive me my coding sins. I know not what I do ...
 
@@ -193,8 +201,16 @@ local savetext = 1
 
 --MIDI
 local mute = false
-local midi_signal_in
-local midi_signal_out
+local midi_signal_in1
+local midi_signal_in2
+local midi_signal_in3
+local midi_signal_in4
+local midi_signals_in = {midi_signal_in1, midi_signal_in2, midi_signal_in3, midi_signal_in4}
+local midi_signal_out1
+local midi_signal_out2
+local midi_signal_out3
+local midi_signal_out4
+local midi_signals_out = {midi_signal_out1, midi_signal_out2, midi_signal_out3, midi_signal_out4}
 local midiCH = {1,1,1,1,1,1}
 local midiCHmain = 1
 local midiVEL = {64,64,64,64,64,64}
@@ -742,9 +758,19 @@ local state = 0
 
 --let's connect MIDI!
 function connect()
-  midi_signal_in = midi.connect(1)
-  midi_signal_out = midi.connect(1)
-  midi_signal_in.event = miditrans
+  midi_signal_in1 = midi.connect(1)
+  midi_signal_in2 = midi.connect(2)
+  midi_signal_in3 = midi.connect(3)
+  midi_signal_in4 = midi.connect(4)
+  midi_signal_out1 = midi.connect(1)
+  midi_signal_out2 = midi.connect(2)
+  midi_signal_out3 = midi.connect(3)
+  midi_signal_out4 = midi.connect(4)
+  midi_signals_out = {midi_signal_out1, midi_signal_out2, midi_signal_out3, midi_signal_out4}
+  midi_signal_in1.event = miditrans
+  midi_signal_in2.event = miditrans
+  midi_signal_in3.event = miditrans
+  midi_signal_in4.event = miditrans
 end
 
 --let's start a function that look at incoming MIDI transport msgs
@@ -820,39 +846,55 @@ function transport(state)
     beat4:stop()
     beat5:stop()
     beat6:stop()
-    midi_signal_out:stop()
-    for a=1,#notes1 do
-      midi_signal_out:note_off(notes1[a],0,midiCH[1])
+    for mm=1,4 do
+      midi_signals_out[mm]:stop()
     end
+      
+      
+    for a=1,#notes1 do
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes1[a],0,midiCH[1])
+      end
+    end  
     for a=1,#notes1 do
       table.remove(notes1,1)
     end
     for a=1,#notes2 do
-      midi_signal_out:note_off(notes2[a],0,midiCH[2])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes2[a],0,midiCH[2])
+      end
     end
     for a=1,#notes2 do
       table.remove(notes2,1)
     end
     for a=1,#notes3 do
-      midi_signal_out:note_off(notes3[a],0,midiCH[3])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes3[a],0,midiCH[3])
+      end
     end
     for a=1,#notes3 do
       table.remove(notes3,1)
     end
     for a=1,#notes4 do
-      midi_signal_out:note_off(notes4[a],0,midiCH[4])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes4[a],0,midiCH[4])
+      end
     end
     for a=1,#notes4 do
       table.remove(notes4,1)
     end
     for a=1,#notes5 do
-      midi_signal_out:note_off(notes5[a],0,midiCH[5])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes5[a],0,midiCH[5])
+      end
     end
     for a=1,#notes5 do
       table.remove(notes5,1)
     end
     for a=1,#notes6 do
-      midi_signal_out:note_off(notes6[a],0,midiCH[6])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes6[a],0,midiCH[6])
+      end
     end
     for a=1,#notes6 do
       table.remove(notes6,1)
@@ -860,7 +902,9 @@ function transport(state)
   end
   if (state == 1) then
     startbeat()
-    midi_signal_out:start()
+    for mm=1,4 do
+      midi_signals_out[mm]:start()
+    end
     for a = 1,6 do
       if(pixelon[a] == 1) then
         play(pixCol[math.floor(pixX[a])][math.floor(pixY[a])],a)
@@ -2465,8 +2509,8 @@ function redraw()
   end
   screen.fill(0,0,0)
   screen.update()
-
-  --[[if(state == 1) then
+  --[[
+  if(state == 1) then
     if(piccount < 1000) then
       _norns.screen_export_png("/home/we/dust/code/pixels/pics/pic"..piccount..".png")
       piccount = piccount + 1
@@ -3117,29 +3161,31 @@ function key(n,id)
             end
           end
         end
-        if(pixelon[1] == 0) then
-          midi_signal_out:note_off(notes1[1],nil,midiCH[1])
-          table.remove(notes1,1)
-        end
-        if(pixelon[2] == 0) then
-          midi_signal_out:note_off(notes2[1],nil,midiCH[2])
-          table.remove(notes2,1)
-        end
-        if(pixelon[3] == 0) then
-          midi_signal_out:note_off(notes3[1],nil,midiCH[3])
-          table.remove(notes3,1)
-        end
-        if(pixelon[4] == 0) then
-          midi_signal_out:note_off(notes4[1],nil,midiCH[4])
-          table.remove(notes4,1)
-        end
-        if(pixelon[5] == 0) then
-          midi_signal_out:note_off(notes5[1],nil,midiCH[5])
-          table.remove(notes5,1)
-        end
-        if(pixelon[6] == 0) then
-          midi_signal_out:note_off(notes6[1],nil,midiCH[6])
-          table.remove(notes6,1)
+        for mm=1,4 do
+          if(pixelon[1] == 0) then
+            midi_signals_out[mm]:note_off(notes1[1],nil,midiCH[1])
+            table.remove(notes1,1)
+          end
+          if(pixelon[2] == 0) then
+            midi_signals_out[mm]:note_off(notes2[1],nil,midiCH[2])
+            table.remove(notes2,1)
+          end
+          if(pixelon[3] == 0) then
+            midi_signals_out[mm]:note_off(notes3[1],nil,midiCH[3])
+            table.remove(notes3,1)
+          end
+          if(pixelon[4] == 0) then
+            midi_signals_out[mm]:note_off(notes4[1],nil,midiCH[4])
+            table.remove(notes4,1)
+          end
+          if(pixelon[5] == 0) then
+            midi_signals_out[mm]:note_off(notes5[1],nil,midiCH[5])
+            table.remove(notes5,1)
+          end
+          if(pixelon[6] == 0) then
+            midi_signals_out[mm]:note_off(notes6[1],nil,midiCH[6])
+            table.remove(notes6,1)
+          end
         end
       end
     end
@@ -3157,29 +3203,31 @@ function key(n,id)
             end
           end
         end
-        if(pixelon[1] == 0) then
-          midi_signal_out:note_off(notes1[1],nil,midiCH[1])
-          table.remove(notes1,1)
-        end
-        if(pixelon[2] == 0) then
-          midi_signal_out:note_off(notes2[1],nil,midiCH[2])
-          table.remove(notes2,1)
-        end
-        if(pixelon[2] == 0) then
-          midi_signal_out:note_off(notes3[1],nil,midiCH[3])
-          table.remove(notes3,1)
-        end
-        if(pixelon[2] == 0) then
-          midi_signal_out:note_off(notes4[1],nil,midiCH[4])
-          table.remove(notes4,1)
-        end
-        if(pixelon[2] == 0) then
-          midi_signal_out:note_off(notes5[1],nil,midiCH[5])
-          table.remove(notes5,1)
-        end
-        if(pixelon[6] == 0) then
-          midi_signal_out:note_off(notes6[1],nil,midiCH[6])
-          table.remove(notes6,1)
+        for mm=1,4 do
+          if(pixelon[1] == 0) then
+            midi_signals_out[mm]:note_off(notes1[1],nil,midiCH[1])
+            table.remove(notes1,1)
+          end
+          if(pixelon[2] == 0) then
+            midi_signals_out[mm]:note_off(notes2[1],nil,midiCH[2])
+            table.remove(notes2,1)
+          end
+          if(pixelon[2] == 0) then
+            midi_signals_out[mm]:note_off(notes3[1],nil,midiCH[3])
+            table.remove(notes3,1)
+          end
+          if(pixelon[2] == 0) then
+            midi_signals_out[mm]:note_off(notes4[1],nil,midiCH[4])
+            table.remove(notes4,1)
+          end
+          if(pixelon[2] == 0) then
+            midi_signals_out[mm]:note_off(notes5[1],nil,midiCH[5])
+            table.remove(notes5,1)
+          end
+          if(pixelon[6] == 0) then
+            midi_signals_out[mm]:note_off(notes6[1],nil,midiCH[6])
+            table.remove(notes6,1)
+          end
         end
       end
     end
@@ -3304,66 +3352,90 @@ function play(note,who)
     note = math.floor((((note - 1)* newrange) / oldrange) + scale1[1])
     table.insert(notes1,1,music.snap_note_to_array (note, scale1))
     if(#notes1 > 1) then
-      midi_signal_out:note_off(notes1[2],nil,midiCH[who])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes1[2],nil,midiCH[who])
+      end
       table.remove(notes1,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale1)))
-    midi_signal_out:note_on(music.snap_note_to_array (note, scale1),actualVEL,midiCH[who])
+    for mm=1,4 do
+      midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale1),actualVEL,midiCH[who])
+    end
   end
   if (who == 2 and (key2 == 0 or key2 == 1 or (key2 == 2 and mute == false))) then
     newrange = scale2[#scale2] - scale2[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale2[1])
     table.insert(notes2,1,music.snap_note_to_array (note, scale2))
     if(#notes2 > 1) then
-      midi_signal_out:note_off(notes2[2],nil,midiCH[who])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes2[2],nil,midiCH[who])
+      end
       table.remove(notes2,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale2)))
-    midi_signal_out:note_on(music.snap_note_to_array (note, scale2),actualVEL,midiCH[who])
+    for mm = 1,4 do
+      midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale2),actualVEL,midiCH[who])
+    end
   end
   if (who == 3 and (key3 == 0 or key3 == 1 or (key3 == 2 and mute == false))) then
     newrange = scale3[#scale3] - scale3[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale3[1])
     table.insert(notes3,1,music.snap_note_to_array (note, scale3))
     if(#notes3 > 1) then
-      midi_signal_out:note_off(notes3[2],nil,midiCH[who])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes3[2],nil,midiCH[who])
+      end
       table.remove(notes3,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale3)))
-    midi_signal_out:note_on(music.snap_note_to_array (note, scale3),actualVEL,midiCH[who])
+    for mm=1,4 do
+      midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale3),actualVEL,midiCH[who])
+    end
   end
   if (who == 4 and (key4 == 0 or key4 == 1 or (key4 == 2 and mute == false))) then
     newrange = scale4[#scale4] - scale4[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale4[1])
     table.insert(notes4,1,music.snap_note_to_array (note, scale4))
     if(#notes4 > 1) then
-      midi_signal_out:note_off(notes4[2],nil,midiCH[who])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes4[2],nil,midiCH[who])
+      end
       table.remove(notes4,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale4)))
-    midi_signal_out:note_on(music.snap_note_to_array (note, scale4),actualVEL,midiCH[who])
+    for mm=1,4 do
+      midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale4),actualVEL,midiCH[who])
+    end  
   end
   if (who == 5 and (key5 == 0 or key5 == 1 or (key5 == 2 and mute == false))) then
     newrange = scale5[#scale5] - scale5[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale5[1])
     table.insert(notes5,1,music.snap_note_to_array (note, scale5))
     if(#notes5 > 1) then
-      midi_signal_out:note_off(notes5[2],nil,midiCH[who])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes5[2],nil,midiCH[who])
+      end
       table.remove(notes5,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale5)))
-    midi_signal_out:note_on(music.snap_note_to_array (note, scale5),actualVEL,midiCH[who])
+    for mm=1,4 do
+      midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale5),actualVEL,midiCH[who])
+    end  
   end
   if (who == 6 and (key6 == 0 or key6== 1 or (key6 == 2 and mute == false))) then
     newrange = scale6[#scale6] - scale6[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale6[1])
     table.insert(notes6,1,music.snap_note_to_array (note, scale6))
     if(#notes6 > 1) then
-      midi_signal_out:note_off(notes6[2],nil,midiCH[who])
+      for mm=1,4 do
+        midi_signals_out[mm]:note_off(notes6[2],nil,midiCH[who])
+      end
       table.remove(notes6,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale6)))
-    midi_signal_out:note_on(music.snap_note_to_array (note, scale6),actualVEL,midiCH[who])
+    for mm=1,4 do
+      midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale6),actualVEL,midiCH[who])
+    end  
   end
 end
   
@@ -3733,42 +3805,54 @@ function enc(n,delta)
       if (menupos == 9) then
         pixelon[1] = util.clamp(pixelon[1]+delta,0,1)
         if(pixelon[1] == 0) then
-          midi_signal_out:note_off(notes1[1],nil,midiCH[1])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes1[1],nil,midiCH[1])
+          end
           table.remove(notes1,1)
         end
       end
       if (menupos == 10) then
         pixelon[2] = util.clamp(pixelon[2]+delta,0,1)
         if(pixelon[2] == 0) then
-          midi_signal_out:note_off(notes2[1],nil,midiCH[2])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes2[1],nil,midiCH[2])
+          end
           table.remove(notes2,1)
         end
       end
       if (menupos == 11) then
         pixelon[3] = util.clamp(pixelon[3]+delta,0,1)
         if(pixelon[3] == 0) then
-          midi_signal_out:note_off(notes3[1],nil,midiCH[3])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes3[1],nil,midiCH[3])
+          end
           table.remove(notes3,1)
         end
       end
       if (menupos == 12) then
         pixelon[4] = util.clamp(pixelon[4]+delta,0,1)
         if(pixelon[4] == 0) then
-          midi_signal_out:note_off(notes4[1],nil,midiCH[4])
+          formm=1,4 do
+            midi_signals_out[mm]:note_off(notes4[1],nil,midiCH[4])
+          end
           table.remove(notes4,1)
         end
       end
       if (menupos == 13) then
         pixelon[5] = util.clamp(pixelon[5]+delta,0,1)
         if(pixelon[5] == 0) then
-          midi_signal_out:note_off(notes5[1],nil,midiCH[5])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes5[1],nil,midiCH[5])
+          end
           table.remove(notes5,1)
         end
       end
       if (menupos == 14) then
         pixelon[6] = util.clamp(pixelon[6]+delta,0,1)
         if(pixelon[6] == 0) then
-          midi_signal_out:note_off(notes6[1],nil,midiCH[6])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes6[1],nil,midiCH[6])
+          end
           table.remove(notes6,1)
         end
       end
@@ -3834,7 +3918,9 @@ function enc(n,delta)
       end
       if (menupos == 30) then
         for a=1,#notes1 do
-          midi_signal_out:note_off(notes1[a],0,midiCH[1])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes1[a],0,midiCH[1])
+          end        
         end
         for a=1,#notes1 do
           table.remove(notes1,1)
@@ -3844,16 +3930,20 @@ function enc(n,delta)
       
       if (menupos == 31) then
       for a=1,#notes2 do
-          midi_signal_out:note_off(notes2[a],0,midiCH[2])
+        for mm=1,4 do
+          midi_signals_out[mm]:note_off(notes2[a],0,midiCH[2])
         end
-        for a=1,#notes2 do
+      end
+      for a=1,#notes2 do
           table.remove(notes2,1)
         end
         midiCH[2] = util.clamp(midiCH[2] + delta, 1,16)
       end
       if (menupos == 32) then
         for a=1,#notes3 do
-          midi_signal_out:note_off(notes3[a],0,midiCH[3])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes3[a],0,midiCH[3])
+          end        
         end
         for a=1,#notes3 do
           table.remove(notes3,1)
@@ -3862,7 +3952,9 @@ function enc(n,delta)
       end
       if (menupos == 33) then
         for a=1,#notes4 do
-          midi_signal_out:note_off(notes4[a],0,midiCH[4])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes4[a],0,midiCH[4])
+          end
         end
         for a=1,#notes4 do
           table.remove(notes4,1)
@@ -3871,7 +3963,9 @@ function enc(n,delta)
       end
       if (menupos == 34) then
         for a=1,#notes5 do
-          midi_signal_out:note_off(notes5[a],0,midiCH[5])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes5[a],0,midiCH[5])
+          end        
         end
         for a=1,#notes5 do
           table.remove(notes5,1)
@@ -3880,7 +3974,9 @@ function enc(n,delta)
       end
       if (menupos == 35) then
         for a=1,#notes6 do
-          midi_signal_out:note_off(notes6[a],0,midiCH[6])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes6[a],0,midiCH[6])
+          end
         end
         for a=1,#notes6 do
           table.remove(notes6,1)
@@ -3890,37 +3986,49 @@ function enc(n,delta)
       if (menupos == 36) then
         midiCHmain = util.clamp((midiCHmain) + delta, 1,16)
         for a=1,#notes1 do
-          midi_signal_out:note_off(notes1[a],0,midiCH[1])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes1[a],0,midiCH[1])
+          end
         end
         for a=1,#notes1 do
           table.remove(notes1,1)
         end
         for a=1,#notes2 do
-          midi_signal_out:note_off(notes2[a],0,midiCH[2])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes2[a],0,midiCH[2])
+          end
         end
         for a=1,#notes2 do
           table.remove(notes2,1)
         end
         for a=1,#notes3 do
-          midi_signal_out:note_off(notes3[a],0,midiCH[3])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes3[a],0,midiCH[3])
+          end      
         end
         for a=1,#notes3 do
           table.remove(notes3,1)
         end
         for a=1,#notes4 do
-          midi_signal_out:note_off(notes4[a],0,midiCH[4])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes4[a],0,midiCH[4])
+          end        
         end
         for a=1,#notes4 do
           table.remove(notes4,1)
         end
         for a=1,#notes5 do
-          midi_signal_out:note_off(notes5[a],0,midiCH[5])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes5[a],0,midiCH[5])
+          end
         end
         for a=1,#notes5 do
           table.remove(notes5,1)
         end
         for a=1,#notes6 do
-          midi_signal_out:note_off(notes6[a],0,midiCH[6])
+          for mm=1,4 do
+            midi_signals_out[mm]:note_off(notes6[a],0,midiCH[6])
+          end        
         end
         for a=1,#notes6 do
           table.remove(notes6,1)
