@@ -3,7 +3,7 @@
 --            sequencer 
 --             instrument
 --
--- V1.6
+-- V1.7
 --
 -- six travelers inching over 
 -- luminous terrain
@@ -45,20 +45,6 @@
 -- a circle, indicating that 
 -- pixel has stopped.
 --
--- drawing mode
--- 
--- from the map screen you
--- can enter "drawing mode"!
--- draw any image you want.
--- set the "style" on the
--- "landscape" screen to one
--- of the solid colors at the 
--- end of the list.
---
--- key 2 + key 3 = drawing mode
--- encoder 1 = brightness/pitch
--- encoder 2 = x position
--- encoder 3 = y position
 -- 
 -- landscape screen
 --
@@ -155,8 +141,40 @@
 -- their type. twiddle knobs
 -- and explore sounds.
 --
+--        
+-- midi screen
+--
+-- midi config settings 
+-- for snd/rcv transport
+-- & cc/note thru. settings
+-- are saved per project.
+--
+--
+-- encoder 1 = select option
+-- encoder 2 = adjust option
+--
+--
+-- macros screen
+--
+-- save 12 macros for quick
+-- recall from a CC msg of
+-- 127. macros store scale,
+-- root, and octave settings
+-- for more musical control
+-- on the fly. macros are 
+-- saved globally and are
+-- loaded on startup
+--
+--
+-- encoder 1 = select maacro
+-- encoder 2 = change CC #
+-- key 1 = save current macro
+--
+--
 -- thanks to @zebra for 
 -- the bangs engine
+
+--local start = 0
 
 -- Please forgive me my coding sins. I know not what I do ...
 
@@ -194,23 +212,15 @@ local lastpage = 2
 local menumode = 0
 local menupos = 1
 local lastmenupos = 1
-local loading = {"a","b","c"}
-local loadtext = 1
-local saving = {"a","b","c"}
-local savetext = 1
 
 --MIDI
+local sendtrans = 1
+local rectrans = 0
+local notetrans = 1
+local cctrans = 1
 local mute = false
-local midi_signal_in1
-local midi_signal_in2
-local midi_signal_in3
-local midi_signal_in4
-local midi_signals_in = {midi_signal_in1, midi_signal_in2, midi_signal_in3, midi_signal_in4}
-local midi_signal_out1
-local midi_signal_out2
-local midi_signal_out3
-local midi_signal_out4
-local midi_signals_out = {midi_signal_out1, midi_signal_out2, midi_signal_out3, midi_signal_out4}
+local midi_signals_in = {}
+local midi_signals_out = {}
 local midiCH = {1,1,1,1,1,1}
 local midiCHmain = 1
 local midiVEL = {64,64,64,64,64,64}
@@ -228,7 +238,278 @@ local key4 = 0
 local key5 = 0
 local key6 = 0
 
+--Macros
+macros = paramset.new()
+macroCC = {}
+macros:add_number("CC1")
+macros:add_number("scale1_1")
+macros:add_number("scale1_2")
+macros:add_number("scale1_3")
+macros:add_number("scale1_4")
+macros:add_number("scale1_5")
+macros:add_number("scale1_6")
+
+macros:add_number("CC2")
+macros:add_number("scale2_1")
+macros:add_number("scale2_2")
+macros:add_number("scale2_3")
+macros:add_number("scale2_4")
+macros:add_number("scale2_5")
+macros:add_number("scale2_6")
+
+macros:add_number("CC3")
+macros:add_number("scale3_1")
+macros:add_number("scale3_2")
+macros:add_number("scale3_3")
+macros:add_number("scale3_4")
+macros:add_number("scale3_5")
+macros:add_number("scale3_6")
+
+macros:add_number("CC4")
+macros:add_number("scale4_1")
+macros:add_number("scale4_2")
+macros:add_number("scale4_3")
+macros:add_number("scale4_4")
+macros:add_number("scale4_5")
+macros:add_number("scale4_6")
+
+macros:add_number("CC5")
+macros:add_number("scale5_1")
+macros:add_number("scale5_2")
+macros:add_number("scale5_3")
+macros:add_number("scale5_4")
+macros:add_number("scale5_5")
+macros:add_number("scale5_6")
+
+macros:add_number("CC6")
+macros:add_number("scale6_1")
+macros:add_number("scale6_2")
+macros:add_number("scale6_3")
+macros:add_number("scale6_4")
+macros:add_number("scale6_5")
+macros:add_number("scale6_6")
+
+macros:add_number("CC7")
+macros:add_number("scale7_1")
+macros:add_number("scale7_2")
+macros:add_number("scale7_3")
+macros:add_number("scale7_4")
+macros:add_number("scale7_5")
+macros:add_number("scale7_6")
+
+macros:add_number("CC8")
+macros:add_number("scale8_1")
+macros:add_number("scale8_2")
+macros:add_number("scale8_3")
+macros:add_number("scale8_4")
+macros:add_number("scale8_5")
+macros:add_number("scale8_6")
+
+macros:add_number("CC9")
+macros:add_number("scale9_1")
+macros:add_number("scale9_2")
+macros:add_number("scale9_3")
+macros:add_number("scale9_4")
+macros:add_number("scale9_5")
+macros:add_number("scale9_6")
+
+macros:add_number("CC10")
+macros:add_number("scale10_1")
+macros:add_number("scale10_2")
+macros:add_number("scale10_3")
+macros:add_number("scale10_4")
+macros:add_number("scale10_5")
+macros:add_number("scale10_6")
+
+macros:add_number("CC11")
+macros:add_number("scale11_1")
+macros:add_number("scale11_2")
+macros:add_number("scale11_3")
+macros:add_number("scale11_4")
+macros:add_number("scale11_5")
+macros:add_number("scale11_6")
+
+macros:add_number("CC12")
+macros:add_number("scale12_1")
+macros:add_number("scale12_2")
+macros:add_number("scale12_3")
+macros:add_number("scale12_4")
+macros:add_number("scale12_5")
+macros:add_number("scale12_6")
+
+macros:add_number("root1_1")
+macros:add_number("root1_2")
+macros:add_number("root1_3")
+macros:add_number("root1_4")
+macros:add_number("root1_5")
+macros:add_number("root1_6")
+
+macros:add_number("root2_1")
+macros:add_number("root2_2")
+macros:add_number("root2_3")
+macros:add_number("root2_4")
+macros:add_number("root2_5")
+macros:add_number("root2_6")
+
+macros:add_number("root3_1")
+macros:add_number("root3_2")
+macros:add_number("root3_3")
+macros:add_number("root3_4")
+macros:add_number("root3_5")
+macros:add_number("root3_6")
+
+macros:add_number("root4_1")
+macros:add_number("root4_2")
+macros:add_number("root4_3")
+macros:add_number("root4_4")
+macros:add_number("root4_5")
+macros:add_number("root4_6")
+
+macros:add_number("root5_1")
+macros:add_number("root5_2")
+macros:add_number("root5_3")
+macros:add_number("root5_4")
+macros:add_number("root5_5")
+macros:add_number("root5_6")
+
+macros:add_number("root6_1")
+macros:add_number("root6_2")
+macros:add_number("root6_3")
+macros:add_number("root6_4")
+macros:add_number("root6_5")
+macros:add_number("root6_6")
+
+macros:add_number("root7_1")
+macros:add_number("root7_2")
+macros:add_number("root7_3")
+macros:add_number("root7_4")
+macros:add_number("root7_5")
+macros:add_number("root7_6")
+
+macros:add_number("root8_1")
+macros:add_number("root8_2")
+macros:add_number("root8_3")
+macros:add_number("root8_4")
+macros:add_number("root8_5")
+macros:add_number("root8_6")
+
+macros:add_number("root9_1")
+macros:add_number("root9_2")
+macros:add_number("root9_3")
+macros:add_number("root9_4")
+macros:add_number("root9_5")
+macros:add_number("root9_6")
+
+macros:add_number("root10_1")
+macros:add_number("root10_2")
+macros:add_number("root10_3")
+macros:add_number("root10_4")
+macros:add_number("root10_5")
+macros:add_number("root10_6")
+
+macros:add_number("root11_1")
+macros:add_number("root11_2")
+macros:add_number("root11_3")
+macros:add_number("root11_4")
+macros:add_number("root11_5")
+macros:add_number("root11_6")
+
+macros:add_number("root12_1")
+macros:add_number("root12_2")
+macros:add_number("root12_3")
+macros:add_number("root12_4")
+macros:add_number("root12_5")
+macros:add_number("root12_6")
+
+macros:add_number("oct1_1")
+macros:add_number("oct1_2")
+macros:add_number("oct1_3")
+macros:add_number("oct1_4")
+macros:add_number("oct1_5")
+macros:add_number("oct1_6")
+
+macros:add_number("oct2_1")
+macros:add_number("oct2_2")
+macros:add_number("oct2_3")
+macros:add_number("oct2_4")
+macros:add_number("oct2_5")
+macros:add_number("oct2_6")
+
+macros:add_number("oct3_1")
+macros:add_number("oct3_2")
+macros:add_number("oct3_3")
+macros:add_number("oct3_4")
+macros:add_number("oct3_5")
+macros:add_number("oct3_6")
+
+macros:add_number("oct4_1")
+macros:add_number("oct4_2")
+macros:add_number("oct4_3")
+macros:add_number("oct4_4")
+macros:add_number("oct4_5")
+macros:add_number("oct4_6")
+
+macros:add_number("oct5_1")
+macros:add_number("oct5_2")
+macros:add_number("oct5_3")
+macros:add_number("oct5_4")
+macros:add_number("oct5_5")
+macros:add_number("oct5_6")
+
+macros:add_number("oct6_1")
+macros:add_number("oct6_2")
+macros:add_number("oct6_3")
+macros:add_number("oct6_4")
+macros:add_number("oct6_5")
+macros:add_number("oct6_6")
+
+macros:add_number("oct7_1")
+macros:add_number("oct7_2")
+macros:add_number("oct7_3")
+macros:add_number("oct7_4")
+macros:add_number("oct7_5")
+macros:add_number("oct7_6")
+
+macros:add_number("oct8_1")
+macros:add_number("oct8_2")
+macros:add_number("oct8_3")
+macros:add_number("oct8_4")
+macros:add_number("oct8_5")
+macros:add_number("oct8_6")
+
+macros:add_number("oct9_1")
+macros:add_number("oct9_2")
+macros:add_number("oct9_3")
+macros:add_number("oct9_4")
+macros:add_number("oct9_5")
+macros:add_number("oct9_6")
+
+macros:add_number("oct10_1")
+macros:add_number("oct10_2")
+macros:add_number("oct10_3")
+macros:add_number("oct10_4")
+macros:add_number("oct10_5")
+macros:add_number("oct10_6")
+
+macros:add_number("oct11_1")
+macros:add_number("oct11_2")
+macros:add_number("oct11_3")
+macros:add_number("oct11_4")
+macros:add_number("oct11_5")
+macros:add_number("oct11_6")
+
+macros:add_number("oct12_1")
+macros:add_number("oct12_2")
+macros:add_number("oct12_3")
+macros:add_number("oct12_4")
+macros:add_number("oct12_5")
+macros:add_number("oct12_6")
+
 --Params
+local fileselect = require 'fileselect'
+local textentry = require "textentry"
+local selecting = false
+local currentname
 savea = paramset.new()
 savea:add_number("mutegroup1")
 savea:add_number("mutegroup2")
@@ -364,277 +645,8 @@ savea:add_number("tempsynth3")
 savea:add_number("tempsynth4")
 savea:add_number("tempsynth5")
 savea:add_number("tempsynth6")
-saveb = paramset.new()
-saveb:add_number("mutegroup1")
-saveb:add_number("mutegroup2")
-saveb:add_number("mutegroup3")
-saveb:add_number("mutegroup4")
-saveb:add_number("mutegroup5")
-saveb:add_number("mutegroup6")
-saveb:add_number("pixelon1")
-saveb:add_number("pixelon2")
-saveb:add_number("pixelon3")
-saveb:add_number("pixelon4")
-saveb:add_number("pixelon5")
-saveb:add_number("pixelon6")
-saveb:add_number("wayfinder1")
-saveb:add_number("wayfinder2")
-saveb:add_number("wayfinder3")
-saveb:add_number("wayfinder4")
-saveb:add_number("wayfinder5")
-saveb:add_number("wayfinder6")
-saveb:add_number("pixX1")
-saveb:add_number("pixX2")
-saveb:add_number("pixX3")
-saveb:add_number("pixX4")
-saveb:add_number("pixX5")
-saveb:add_number("pixX6")
-saveb:add_number("pixY1")
-saveb:add_number("pixY2")
-saveb:add_number("pixY3")
-saveb:add_number("pixY4")
-saveb:add_number("pixY5")
-saveb:add_number("pixY6")
-saveb:add_number("pixDX1")
-saveb:add_number("pixDX2")
-saveb:add_number("pixDX3")
-saveb:add_number("pixDX4")
-saveb:add_number("pixDX5")
-saveb:add_number("pixDX6")
-saveb:add_number("pixDY1")
-saveb:add_number("pixDY2")
-saveb:add_number("pixDY3")
-saveb:add_number("pixDY4")
-saveb:add_number("pixDY5")
-saveb:add_number("pixDY6")
-saveb:add_number("stepdiv2")
-saveb:add_number("stepdiv3")
-saveb:add_number("stepdiv4")
-saveb:add_number("stepdiv5")
-saveb:add_number("stepdiv6")
-saveb:add_number("stepdiv1")
-saveb:add_number("trigprob1")
-saveb:add_number("trigprob2")
-saveb:add_number("trigprob3")
-saveb:add_number("trigprob4")
-saveb:add_number("trigprob5")
-saveb:add_number("trigprob6")
-saveb:add_number("styleselect")
-saveb:add_number("tempo")
-saveb:add_number("low1")
-saveb:add_number("low2")
-saveb:add_number("low3")
-saveb:add_number("low4")
-saveb:add_number("low5")
-saveb:add_number("low6")
-saveb:add_number("octaves1")
-saveb:add_number("octaves2")
-saveb:add_number("octaves3")
-saveb:add_number("octaves4")
-saveb:add_number("octaves5")
-saveb:add_number("octaves6")
-saveb:add_number("mscale1")
-saveb:add_number("mscale2")
-saveb:add_number("mscale3")
-saveb:add_number("mscale4")
-saveb:add_number("mscale5")
-saveb:add_number("mscale6")
-saveb:add_number("midiVEL1")
-saveb:add_number("midiVEL2")
-saveb:add_number("midiVEL3")
-saveb:add_number("midiVEL4")
-saveb:add_number("midiVEL5")
-saveb:add_number("midiVEL6")
-saveb:add_number("midiCH1")
-saveb:add_number("midiCH2")
-saveb:add_number("midiCH3")
-saveb:add_number("midiCH4")
-saveb:add_number("midiCH5")
-saveb:add_number("midiCH6")
-saveb:add_number("release1")
-saveb:add_number("release2")
-saveb:add_number("release3")
-saveb:add_number("release4")
-saveb:add_number("release5")
-saveb:add_number("release6")
-saveb:add_number("attack1")
-saveb:add_number("attack2")
-saveb:add_number("attack3")
-saveb:add_number("attack4")
-saveb:add_number("attack5")
-saveb:add_number("attack6")
-saveb:add_number("pw1")
-saveb:add_number("pw2")
-saveb:add_number("pw3")
-saveb:add_number("pw4")
-saveb:add_number("pw5")
-saveb:add_number("pw6")
-saveb:add_number("mod21")
-saveb:add_number("mod22")
-saveb:add_number("mod23")
-saveb:add_number("mod24")
-saveb:add_number("mod25")
-saveb:add_number("mod26")
-saveb:add_number("hz21")
-saveb:add_number("hz22")
-saveb:add_number("hz23")
-saveb:add_number("hz24")
-saveb:add_number("hz25")
-saveb:add_number("hz26")
-saveb:add_number("amp1")
-saveb:add_number("amp2")
-saveb:add_number("amp3")
-saveb:add_number("amp4")
-saveb:add_number("amp5")
-saveb:add_number("amp6")
-saveb:add_number("pan1")
-saveb:add_number("pan2")
-saveb:add_number("pan3")
-saveb:add_number("pan4")
-saveb:add_number("pan5")
-saveb:add_number("pan6")
-saveb:add_number("tempsynth1")
-saveb:add_number("tempsynth2")
-saveb:add_number("tempsynth3")
-saveb:add_number("tempsynth4")
-saveb:add_number("tempsynth5")
-saveb:add_number("tempsynth6")
-savec = paramset.new()
-savec:add_number("mutegroup1")
-savec:add_number("mutegroup2")
-savec:add_number("mutegroup3")
-savec:add_number("mutegroup4")
-savec:add_number("mutegroup5")
-savec:add_number("mutegroup6")
-savec:add_number("pixelon1")
-savec:add_number("pixelon2")
-savec:add_number("pixelon3")
-savec:add_number("pixelon4")
-savec:add_number("pixelon5")
-savec:add_number("pixelon6")
-savec:add_number("wayfinder1")
-savec:add_number("wayfinder2")
-savec:add_number("wayfinder3")
-savec:add_number("wayfinder4")
-savec:add_number("wayfinder5")
-savec:add_number("wayfinder6")
-savec:add_number("pixX1")
-savec:add_number("pixX2")
-savec:add_number("pixX3")
-savec:add_number("pixX4")
-savec:add_number("pixX5")
-savec:add_number("pixX6")
-savec:add_number("pixY1")
-savec:add_number("pixY2")
-savec:add_number("pixY3")
-savec:add_number("pixY4")
-savec:add_number("pixY5")
-savec:add_number("pixY6")
-savec:add_number("pixDX1")
-savec:add_number("pixDX2")
-savec:add_number("pixDX3")
-savec:add_number("pixDX4")
-savec:add_number("pixDX5")
-savec:add_number("pixDX6")
-savec:add_number("pixDY1")
-savec:add_number("pixDY2")
-savec:add_number("pixDY3")
-savec:add_number("pixDY4")
-savec:add_number("pixDY5")
-savec:add_number("pixDY6")
-savec:add_number("stepdiv2")
-savec:add_number("stepdiv3")
-savec:add_number("stepdiv4")
-savec:add_number("stepdiv5")
-savec:add_number("stepdiv6")
-savec:add_number("stepdiv1")
-savec:add_number("trigprob1")
-savec:add_number("trigprob2")
-savec:add_number("trigprob3")
-savec:add_number("trigprob4")
-savec:add_number("trigprob5")
-savec:add_number("trigprob6")
-savec:add_number("styleselect")
-savec:add_number("tempo")
-savec:add_number("low1")
-savec:add_number("low2")
-savec:add_number("low3")
-savec:add_number("low4")
-savec:add_number("low5")
-savec:add_number("low6")
-savec:add_number("octaves1")
-savec:add_number("octaves2")
-savec:add_number("octaves3")
-savec:add_number("octaves4")
-savec:add_number("octaves5")
-savec:add_number("octaves6")
-savec:add_number("mscale1")
-savec:add_number("mscale2")
-savec:add_number("mscale3")
-savec:add_number("mscale4")
-savec:add_number("mscale5")
-savec:add_number("mscale6")
-savec:add_number("midiVEL1")
-savec:add_number("midiVEL2")
-savec:add_number("midiVEL3")
-savec:add_number("midiVEL4")
-savec:add_number("midiVEL5")
-savec:add_number("midiVEL6")
-savec:add_number("midiCH1")
-savec:add_number("midiCH2")
-savec:add_number("midiCH3")
-savec:add_number("midiCH4")
-savec:add_number("midiCH5")
-savec:add_number("midiCH6")
-savec:add_number("release1")
-savec:add_number("release2")
-savec:add_number("release3")
-savec:add_number("release4")
-savec:add_number("release5")
-savec:add_number("release6")
-savec:add_number("attack1")
-savec:add_number("attack2")
-savec:add_number("attack3")
-savec:add_number("attack4")
-savec:add_number("attack5")
-savec:add_number("attack6")
-savec:add_number("pw1")
-savec:add_number("pw2")
-savec:add_number("pw3")
-savec:add_number("pw4")
-savec:add_number("pw5")
-savec:add_number("pw6")
-savec:add_number("mod21")
-savec:add_number("mod22")
-savec:add_number("mod23")
-savec:add_number("mod24")
-savec:add_number("mod25")
-savec:add_number("mod26")
-savec:add_number("hz21")
-savec:add_number("hz22")
-savec:add_number("hz23")
-savec:add_number("hz24")
-savec:add_number("hz25")
-savec:add_number("hz26")
-savec:add_number("amp1")
-savec:add_number("amp2")
-savec:add_number("amp3")
-savec:add_number("amp4")
-savec:add_number("amp5")
-savec:add_number("amp6")
-savec:add_number("pan1")
-savec:add_number("pan2")
-savec:add_number("pan3")
-savec:add_number("pan4")
-savec:add_number("pan5")
-savec:add_number("pan6")
-savec:add_number("tempsynth1")
-savec:add_number("tempsynth2")
-savec:add_number("tempsynth3")
-savec:add_number("tempsynth4")
-savec:add_number("tempsynth5")
-savec:add_number("tempsynth6")
-
+savea:add_number("sendtrans")
+savea:add_number("rectrans")
 --Display
 screen.aa(1)
 local scalefade = 0
@@ -758,28 +770,255 @@ local state = 0
 
 --let's connect MIDI!
 function connect()
-  midi_signal_in1 = midi.connect(1)
-  midi_signal_in2 = midi.connect(2)
-  midi_signal_in3 = midi.connect(3)
-  midi_signal_in4 = midi.connect(4)
-  midi_signal_out1 = midi.connect(1)
-  midi_signal_out2 = midi.connect(2)
-  midi_signal_out3 = midi.connect(3)
-  midi_signal_out4 = midi.connect(4)
-  midi_signals_out = {midi_signal_out1, midi_signal_out2, midi_signal_out3, midi_signal_out4}
-  midi_signal_in1.event = miditrans
-  midi_signal_in2.event = miditrans
-  midi_signal_in3.event = miditrans
-  midi_signal_in4.event = miditrans
+  
+  for i = 1,#midi.vports do -- query all ports
+  midi_signals_in[i] = midi.connect(i) -- connect each device
+  midi_signals_in[i].event = miditrans
+  midi_signals_out[i]= midi.connect(i)
+  end
+end
+function textenter(name)
+  currentname = name
+  if (currentname ~= nil) then 
+    saveit()
+  end
 end
 
---let's start a function that look at incoming MIDI transport msgs
+function saveit()
+  tab.save(pixCol,"/home/we/dust/code/pixels/data/" .. currentname .. ".txt")
+  savea:set("mutegroup1",mutegroup[1])
+  savea:set("mutegroup2",mutegroup[2])
+  savea:set("mutegroup3",mutegroup[3])
+  savea:set("mutegroup4",mutegroup[4])
+  savea:set("mutegroup5",mutegroup[5])
+  savea:set("mutegroup6",mutegroup[6])
+  savea:set("pixelon1",pixelon[1])
+  savea:set("pixelon2",pixelon[2])
+  savea:set("pixelon3",pixelon[3])
+  savea:set("pixelon4",pixelon[4])
+  savea:set("pixelon5",pixelon[5])
+  savea:set("pixelon6",pixelon[6])
+  savea:set("pixX1",pixX[1])
+  savea:set("pixX2",pixX[2])
+  savea:set("pixX3",pixX[3])
+  savea:set("pixX4",pixX[4])
+  savea:set("pixX5",pixX[5])
+  savea:set("pixX6",pixX[6])
+  savea:set("pixY1",pixY[1])
+  savea:set("pixY2",pixY[2])
+  savea:set("pixY3",pixY[3])
+  savea:set("pixY4",pixY[4])
+  savea:set("pixY5",pixY[5])
+  savea:set("pixY6",pixY[6])
+  savea:set("pixDX1",pixDX[1])
+  savea:set("pixDX2",pixDX[2])
+  savea:set("pixDX3",pixDX[3])
+  savea:set("pixDX4",pixDX[4])
+  savea:set("pixDX5",pixDX[5])
+  savea:set("pixDX6",pixDX[6])
+  savea:set("pixDY1",pixDY[1])
+  savea:set("pixDY2",pixDY[2])
+  savea:set("pixDY3",pixDY[3])
+  savea:set("pixDY4",pixDY[4])
+  savea:set("pixDY5",pixDY[5])
+  savea:set("pixDY6",pixDY[6])
+  savea:set("stepdiv2",stepdiv[2])
+  savea:set("stepdiv3",stepdiv[3])
+  savea:set("stepdiv4",stepdiv[4])
+  savea:set("stepdiv5",stepdiv[5])
+  savea:set("stepdiv6",stepdiv[6])
+  savea:set("stepdiv1",stepdiv[1])
+  savea:set("trigprob1",trigprob[1])
+  savea:set("trigprob2",trigprob[2])
+  savea:set("trigprob3",trigprob[3])
+  savea:set("trigprob4",trigprob[4])
+  savea:set("trigprob5",trigprob[5])
+  savea:set("trigprob6",trigprob[6])
+  savea:set("styleselect",styleselect)
+  savea:set("tempo",tempo)
+  savea:set("low1",low[1])
+  savea:set("low2",low[2])
+  savea:set("low3",low[3])
+  savea:set("low4",low[4])
+  savea:set("low5",low[5])
+  savea:set("low6",low[6])
+  savea:set("octaves1",octaves[1])
+  savea:set("octaves2",octaves[2])
+  savea:set("octaves3",octaves[3])
+  savea:set("octaves4",octaves[4])
+  savea:set("octaves5",octaves[5])
+  savea:set("octaves6",octaves[6])
+  savea:set("mscale1",mscale[1])
+  savea:set("mscale2",mscale[2])
+  savea:set("mscale3",mscale[3])
+  savea:set("mscale4",mscale[4])
+  savea:set("mscale5",mscale[5])
+  savea:set("mscale6",mscale[6])
+  savea:set("midiVEL1",midiVEL[1])
+  savea:set("midiVEL2",midiVEL[2])
+  savea:set("midiVEL3",midiVEL[3])
+  savea:set("midiVEL4",midiVEL[4])
+  savea:set("midiVEL5",midiVEL[5])
+  savea:set("midiVEL6",midiVEL[6])
+  savea:set("midiCH1",midiCH[1])
+  savea:set("midiCH2",midiCH[2])
+  savea:set("midiCH3",midiCH[3])
+  savea:set("midiCH4",midiCH[4])
+  savea:set("midiCH5",midiCH[5])
+  savea:set("midiCH6",midiCH[6])
+  savea:set("release1",release[1])
+  savea:set("release2",release[2])
+  savea:set("release3",release[3])
+  savea:set("release4",release[4])
+  savea:set("release5",release[5])
+  savea:set("release6",release[6])
+  savea:set("attack1",attack[1])
+  savea:set("attack2",attack[2])
+  savea:set("attack3",attack[3])
+  savea:set("attack4",attack[4])
+  savea:set("attack5",attack[5])
+  savea:set("attack6",attack[6])
+  savea:set("pw1",pw[1])
+  savea:set("pw2",pw[2])
+  savea:set("pw3",pw[3])
+  savea:set("pw4",pw[4])
+  savea:set("pw5",pw[5])
+  savea:set("pw6",pw[6])
+  savea:set("mod21",mod2[1])
+  savea:set("mod22",mod2[2])
+  savea:set("mod23",mod2[3])
+  savea:set("mod24",mod2[4])
+  savea:set("mod25",mod2[5])
+  savea:set("mod26",mod2[6])
+  savea:set("hz21",hz2[1])
+  savea:set("hz22",hz2[2])
+  savea:set("hz23",hz2[3])
+  savea:set("hz24",hz2[4])
+  savea:set("hz25",hz2[5])
+  savea:set("hz26",hz2[6])
+  savea:set("amp1",amp[1])
+  savea:set("amp2",amp[2])
+  savea:set("amp3",amp[3])
+  savea:set("amp4",amp[4])
+  savea:set("amp5",amp[5])
+  savea:set("amp6",amp[6])
+  savea:set("pan1",pan[1])
+  savea:set("pan2",pan[2])
+  savea:set("pan3",pan[3])
+  savea:set("pan4",pan[4])
+  savea:set("pan5",pan[5])
+  savea:set("pan6",pan[6])
+  savea:set("tempsynth1",tempsynth[1])
+  savea:set("tempsynth2",tempsynth[2])
+  savea:set("tempsynth3",tempsynth[3])
+  savea:set("tempsynth4",tempsynth[4])
+  savea:set("tempsynth5",tempsynth[5])
+  savea:set("tempsynth6",tempsynth[6])
+  savea:set("wayfinder1",wayfinder[1])
+  savea:set("wayfinder2",wayfinder[2])
+  savea:set("wayfinder3",wayfinder[3])
+  savea:set("wayfinder4",wayfinder[4])
+  savea:set("wayfinder5",wayfinder[5])
+  savea:set("wayfinder6",wayfinder[6])
+  savea:set("sendtrans",sendtrans)
+  savea:set("rectrans",rectrans)
+  savea:write("/home/we/dust/code/pixels/pset/" .. currentname ..".pset")
+end
+
+function load_file(file)
+  selecting = false
+  if file ~= "cancel" then
+    s = string.sub(file,32,string.len(file)-5)
+    currentname = s
+    f=io.open("/home/we/dust/code/pixels/data/"..s..".txt","r")
+          if (f~=nil) then 
+            pixCol = tab.load("/home/we/dust/code/pixels/data/"..s..".txt")
+            savea:read(file)
+            styleselect = savea:get("styleselect")
+            tempo = savea:get("tempo")
+            sendtrans = savea:get("sendtrans")
+            rectrans = savea:get("rectrans")
+            for a=1,6 do
+              mutegroup[a] = savea:get("mutegroup"..a)
+              pixelon[a] = savea:get("pixelon"..a)
+              mscale[a] = savea:get("mscale"..a)
+              tempsynth[a] = savea:get("tempsynth"..a)
+              pixX[a] = savea:get("pixX"..a)
+              pixY[a] = savea:get("pixY"..a)
+              pixDX[a] = savea:get("pixDX"..a)
+              pixDY[a] = savea:get("pixDY"..a)
+              stepdiv[a] = savea:get("stepdiv"..a)
+              trigprob[a] = savea:get("trigprob"..a)
+              low[a] = savea:get("low"..a)
+              octaves[a] = savea:get("octaves"..a)
+              midiVEL[a] = savea:get("midiVEL"..a)
+              midiCH[a] = savea:get("midiCH"..a)
+              release[a] = savea:get("release"..a)
+              attack[a] = savea:get("attack"..a)
+              pw[a] = savea:get("pw"..a)
+              mod2[a] = savea:get("mod2"..a)
+              hz2[a] = savea:get("hz2"..a)
+              amp[a] = savea:get("amp"..a)
+              pan[a] = savea:get("pan"..a)
+              wayfinder[a] = savea:get("wayfinder"..a)
+            end
+            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
+            savea:bang()
+            drawnewmap = 1
+            syncbeat()
+          end
+  end
+end
+
+
+--let's start a function that look at incoming MIDI msgs
 function miditrans(data)
     local d = midi.to_msg(data)
     if(d.type == "note_off") then
       mute = true
+      if(notetrans == 1) then
+        for i=1,16 do
+          midi_signals_out[i]:note_off(d.note,nil,d.ch)
+        end
+      end
+    end
+    if(d.type == "cc") then
+      if(cctrans == 1) then
+        for i=1,16 do
+          midi_signals_out[i]:cc(d.cc,d.val,d.ch)
+        end
+      end
+      for i = 1, 12 do
+        if(d.cc == macroCC[i]) then
+          f=io.open("/home/we/dust/code/pixels/macros.txt","r")
+          if (f ~= nil) then
+            macros:read("/home/we/dust/code/pixels/macros.pset")
+            for a=1,6 do
+              octaves[a] = macros:get("oct"..i.."_"..a)
+              mscale[a] = macros:get("scale"..i.."_"..a)
+              low[a] = macros:get("root"..i.."_"..a)
+            end
+            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
+            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
+            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
+            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
+            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
+            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
+          end
+        end
+      end
     end
     if(d.type == "note_on") then
+      if(notetrans == 1) then
+        for i=1,16 do
+          midi_signals_out[i]:note_on(d.note,d.vel,d.ch)
+        end
+      end
       mute = false
       if(key1 > 0) then
         low[1] = d.note
@@ -806,15 +1045,16 @@ function miditrans(data)
         scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
       end
     end
-    if (d.type == "start" or d.type == "continue") then
+    if ((d.type == "start" or d.type == "continue") and rectrans == 1) then
       state = 1 
       transport(1)
     end
-    if (d.type == "stop")then
+    if (d.type == "stop" and rectrans == 1)then
       state = 0
       transport(0)
     end
 end
+
 
 --let's init!
 function init()
@@ -824,6 +1064,39 @@ function init()
     for y=0,64 do
       pixCol[x][y] = 0
     end
+  end
+  f=io.open("/home/we/dust/code/pixels/macros.txt","r")
+  if (f ~= nil) then
+  macros:read("/home/we/dust/code/pixels/macros.pset")
+    for a=1,12 do
+      macroCC[a] = macros:get("CC"..a)
+    end
+
+  else
+    b = 1
+    for i = 1,12 do
+      macros:set("CC"..i,i+19)
+      macroCC[i] = i+19
+      for a=1,6 do
+        macros:set("scale"..i.."_"..a,b)
+        macros:set("root"..i.."_"..a,low[a])
+        macros:set("oct"..i.."_"..a,octaves[a])
+      end  
+      b = b+1
+    end
+    macros:write("/home/we/dust/code/pixels/macros.pset")
+    tab.save(macros,"/home/we/dust/code/pixels/macros.txt")
+  end
+  tempscale = math.random(1,6)
+  tempoct= math.random(1,3)
+  templow = math.random(24,48)
+  for i=1,6 do
+    tempsynth[i] = math.random(1,4)
+    mscale[i]= tempscale
+    octaves[i] = tempoct
+    low[i] = templow
+    temp = math.random(0,100)
+    trigprob[i] = temp
   end
   scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
   scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
@@ -846,54 +1119,56 @@ function transport(state)
     beat4:stop()
     beat5:stop()
     beat6:stop()
-    for mm=1,4 do
-      midi_signals_out[mm]:stop()
+    for mm=1,16 do
+      if(sendtrans == 1) then
+        midi_signals_out[mm]:stop()
+      end    
     end
       
       
     for a=1,#notes1 do
-      for mm=1,4 do
-        midi_signals_out[mm]:note_off(notes1[a],0,midiCH[1])
+      for mm=1,16 do
+        midi_signals_out[mm]:note_off(notes1[a],nil,midiCH[1])
       end
     end  
     for a=1,#notes1 do
       table.remove(notes1,1)
     end
     for a=1,#notes2 do
-      for mm=1,4 do
-        midi_signals_out[mm]:note_off(notes2[a],0,midiCH[2])
+      for mm=1,16 do
+        midi_signals_out[mm]:note_off(notes2[a],nil,midiCH[2])
       end
     end
     for a=1,#notes2 do
       table.remove(notes2,1)
     end
     for a=1,#notes3 do
-      for mm=1,4 do
-        midi_signals_out[mm]:note_off(notes3[a],0,midiCH[3])
+      for mm=1,16 do
+        midi_signals_out[mm]:note_off(notes3[a],nil,midiCH[3])
       end
     end
     for a=1,#notes3 do
       table.remove(notes3,1)
     end
     for a=1,#notes4 do
-      for mm=1,4 do
-        midi_signals_out[mm]:note_off(notes4[a],0,midiCH[4])
+      for mm=1,16 do
+        midi_signals_out[mm]:note_off(notes4[a],nil,midiCH[4])
       end
     end
     for a=1,#notes4 do
       table.remove(notes4,1)
     end
     for a=1,#notes5 do
-      for mm=1,4 do
-        midi_signals_out[mm]:note_off(notes5[a],0,midiCH[5])
+      for mm=1,16 do
+        midi_signals_out[mm]:note_off(notes5[a],nil,midiCH[5])
       end
     end
     for a=1,#notes5 do
       table.remove(notes5,1)
     end
     for a=1,#notes6 do
-      for mm=1,4 do
-        midi_signals_out[mm]:note_off(notes6[a],0,midiCH[6])
+      for mm=1,16 do
+        midi_signals_out[mm]:note_off(notes6[a],nil,midiCH[6])
       end
     end
     for a=1,#notes6 do
@@ -902,8 +1177,10 @@ function transport(state)
   end
   if (state == 1) then
     startbeat()
-    for mm=1,4 do
-      midi_signals_out[mm]:start()
+    for mm=1,16 do
+      if(sendtrans == 1) then
+        midi_signals_out[mm]:start()
+      end
     end
     for a = 1,6 do
       if(pixelon[a] == 1) then
@@ -943,6 +1220,7 @@ function move(who)
 end
 
 function menuwatcher()
+
   if(drawing == 1 and drawnewmap ~= 1) then
     mc = mc + 1
     if (mc > 10) then
@@ -955,8 +1233,11 @@ function menuwatcher()
     drawnewmap = 1
   end
 end
+
+
 --oh god ... this redraw function is outta control ... but somehow still works
 function redraw()
+  if(selecting == false) then
   if(drawing == 0) then
     screen.clear()
   end
@@ -1162,9 +1443,13 @@ function redraw()
     screen.move(112,40)
     screen.text(octaves[6])
     screen.move(5,50)
-    screen.text("load " .. loading[loadtext])
-    screen.move(5,60)
-    screen.text("save " .. saving[savetext])
+    screen.text("load")
+    screen.move(45,50)
+    screen.text("save as")
+    screen.move(95,50)
+    if(currentname ~= nil) then
+      screen.text("save")
+    end
     if(menupos == 1) then
       screen.level(15)
       screen.move(6,11)
@@ -1335,12 +1620,17 @@ function redraw()
     if(menupos == 23) then
       screen.level(15)
       screen.move(6,51)
-      screen.text("load " .. loading[loadtext])
+      screen.text("load")
     end
     if(menupos == 24) then
       screen.level(15)
-      screen.move(6,61)
-      screen.text("save " .. saving[savetext])
+      screen.move(46,51)
+      screen.text("save as")
+    end
+    if(menupos == 25 and currentname ~= nil) then
+      screen.level(15)
+      screen.move(96,51)
+      screen.text("save")
     end
   end
   if (page == 3) then
@@ -2261,15 +2551,6 @@ function redraw()
       else
       screen.text(hz2[6]/10)
     end
-  
-
-    
-    
-    
-    
-    
-    
-    
     if(menupos >= 1 and menupos < 8) then
       screen.level(15)
       screen.move(6,21)
@@ -2491,10 +2772,139 @@ function redraw()
         screen.text(hz2[6]/10)
       end
     end
+  end
+  
+  if (page == 6) then
+    screen.level(math.floor(wordcol1))
+    screen.font_face(1)
+    screen.font_size(8)
+    screen.move(89,8)
+    screen.text("midi")
+    screen.level(math.floor(wordcol2))
+    screen.move(90,9)
+    screen.text("midi")
+    screen.level(math.floor(wordcol3))
+    screen.move(91,10)
+    screen.text("midi")
+    screen.level(3)
+    screen.move(5,20)
+    screen.text("snd midi trns ")
+    screen.move(80,20)
+    if (sendtrans == 0) then
+      screen.text("no")
+      else
+      screen.text("yes")
+    end
+     if(menupos == 1) then
+      screen.level(15)
+      screen.move(81,21)
+      if(sendtrans == 1) then
+        screen.text("yes")
+        else
+        screen.text("no")
+      end
+    end
+    screen.level(3)
+    screen.move(5,30)  
+    screen.text("rec midi trns ")
+    screen.move(80,30)
+    if (rectrans == 0) then
+      screen.text("no")
+      else
+      screen.text("yes")
+    end
+     if(menupos == 2) then
+      screen.level(15)
+      screen.move(81,31)
+      if(rectrans == 1) then
+        screen.text("yes")
+        else
+        screen.text("no")
+      end
+    end
+      
+    screen.level(3)
+    screen.move(5,40)  
+    screen.text("midi note thru ")
+    screen.move(80,40)
+    if (notetrans == 0) then
+      screen.text("no")
+      else
+      screen.text("yes")
+    end
+     if(menupos == 3) then
+      screen.level(15)
+      screen.move(81,41)
+      if(notetrans == 1) then
+        screen.text("yes")
+        else
+        screen.text("no")
+      end
+    end
+    screen.level(3)
+    screen.move(5,50)  
+    screen.text("midi cc thru ")
+    screen.move(80,50)
+    if (cctrans == 0) then
+      screen.text("no")
+      else
+      screen.text("yes")
+    end
+     if(menupos == 4) then
+      screen.level(15)
+      screen.move(81,51)
+      if(cctrans == 1) then
+        screen.text("yes")
+        else
+        screen.text("no")
+      end
+    end
+  end
+   if (page == 7) then
+    screen.level(math.floor(wordcol1))
+    screen.font_face(1)
+    screen.font_size(8)
+    screen.move(89,8)
+    screen.text("macros")
+    screen.level(math.floor(wordcol2))
+    screen.move(90,9)
+    screen.text("macros")
+    screen.level(math.floor(wordcol3))
+    screen.move(91,10)
+    screen.text("macros")
+    
+    screen.level(3)
+    
+    tempx = 5
+    tempy = 20
+    for i = 1,12 do
+      
+      screen.move(tempx,tempy)
+      screen.text(i)
+      if i == menupos then
+        menposx = tempx
+        menposy = tempy
+      end
+      tempx = tempx + 10
+      screen.move(tempx,tempy)
+      screen.text("CC" .. string.lower(macroCC[i]))
+      tempx = tempx + 31
+      if i == 3 or i == 6 or i ==9  then
+        tempx = 5
+        tempy = tempy + 10
+      end
+    end
+    
+    screen.level(15)
+    screen.move(menposx+1,menposy+1)
+    screen.text(menupos)
+    screen.move(menposx+11,menposy+1)
+    screen.text("CC" .. string.lower(macroCC[menupos]))
+     
+      
     
   end
-    
-    
+   
   wordcol1 = wordcol1 + .1
   if (wordcol1 > 5) then
     wordcol1 = 0
@@ -2529,7 +2939,7 @@ function redraw()
     end
   end
 --]]
-
+  end
 end
   
 --let's look at some key inputs
@@ -2605,548 +3015,14 @@ function key(n,id)
         styleselect = styleselecttemp
       end
       if(menupos == 23) then
-        if(loadtext == 1) then
-          f=io.open("/home/we/dust/code/pixels/pixel_data_a.txt","r")
-          if (f~=nil) then 
-            pixCol = tab.load("/home/we/dust/code/pixels/pixel_data_a.txt")
-            savea:read("/home/we/dust/code/pixels/savea.pset")
-            styleselect = savea:get("styleselect")
-            tempo = savea:get("tempo")
-            for a=1,6 do
-              mutegroup[a] = savea:get("mutegroup"..a)
-              pixelon[a] = savea:get("pixelon"..a)
-              mscale[a] = savea:get("mscale"..a)
-              tempsynth[a] = savea:get("tempsynth"..a)
-              pixX[a] = savea:get("pixX"..a)
-              pixY[a] = savea:get("pixY"..a)
-              pixDX[a] = savea:get("pixDX"..a)
-              pixDY[a] = savea:get("pixDY"..a)
-              stepdiv[a] = savea:get("stepdiv"..a)
-              trigprob[a] = savea:get("trigprob"..a)
-              low[a] = savea:get("low"..a)
-              octaves[a] = savea:get("octaves"..a)
-              midiVEL[a] = savea:get("midiVEL"..a)
-              midiCH[a] = savea:get("midiCH"..a)
-              release[a] = savea:get("release"..a)
-              attack[a] = savea:get("attack"..a)
-              pw[a] = savea:get("pw"..a)
-              mod2[a] = savea:get("mod2"..a)
-              hz2[a] = savea:get("hz2"..a)
-              amp[a] = savea:get("amp"..a)
-              pan[a] = savea:get("pan"..a)
-              wayfinder[a] = savea:get("wayfinder"..a)
-            end
-            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
-            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
-            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
-            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
-            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
-            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
-            savea:bang()
-            drawnewmap = 1
-            syncbeat()
-          end
-        end
-        if(loadtext == 2) then
-          f=io.open("/home/we/dust/code/pixels/pixel_data_b.txt","r")
-          if (f ~= nil) then
-            pixCol = tab.load("/home/we/dust/code/pixels/pixel_data_b.txt")
-            saveb:read("/home/we/dust/code/pixels/saveb.pset")
-            styleselect = saveb:get("styleselect")
-            tempo = saveb:get("tempo")
-            for a=1,6 do
-              mutegroup[a] = saveb:get("mutegroup"..a)
-              pixelon[a] = saveb:get("pixelon"..a)
-              mscale[a] = saveb:get("mscale"..a)
-              tempsynth[a] = saveb:get("tempsynth"..a)
-              pixX[a] = saveb:get("pixX"..a)
-              pixY[a] = saveb:get("pixY"..a)
-              pixDX[a] = saveb:get("pixDX"..a)
-              pixDY[a] = saveb:get("pixDY"..a)
-              stepdiv[a] = saveb:get("stepdiv"..a)
-              trigprob[a] = saveb:get("trigprob"..a)
-              low[a] = saveb:get("low"..a)
-              octaves[a] = saveb:get("octaves"..a)
-              midiVEL[a] = saveb:get("midiVEL"..a)
-              midiCH[a] = saveb:get("midiCH"..a)
-              release[a] = saveb:get("release"..a)
-              attack[a] = saveb:get("attack"..a)
-              pw[a] = saveb:get("pw"..a)
-              mod2[a] = saveb:get("mod2"..a)
-              hz2[a] = saveb:get("hz2"..a)
-              amp[a] = saveb:get("amp"..a)
-              pan[a] = saveb:get("pan"..a)
-              wayfinder[a] = saveb:get("wayfinder"..a)
-            end
-            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
-            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
-            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
-            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
-            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
-            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
-            saveb:bang()
-            drawnewmap = 1
-            syncbeat()
-          end
-        end
-        if(loadtext == 3) then
-        f=io.open("/home/we/dust/code/pixels/pixel_data_c.txt","r")
-          if (f ~= nil) then
-            pixCol = tab.load("/home/we/dust/code/pixels/pixel_data_c.txt")
-            savec:read("/home/we/dust/code/pixels/savec.pset")
-            styleselect = savec:get("styleselect")
-            tempo = savec:get("tempo")
-            for a=1,6 do
-              mutegroup[a] = savec:get("mutegroup"..a)
-              pixelon[a] = savec:get("pixelon"..a)
-              mscale[a] = savec:get("mscale"..a)
-              tempsynth[a] = savec:get("tempsynth"..a)
-              pixX[a] = savec:get("pixX"..a)
-              pixY[a] = savec:get("pixY"..a)
-              pixDX[a] = savec:get("pixDX"..a)
-              pixDY[a] = savec:get("pixDY"..a)
-              stepdiv[a] = savec:get("stepdiv"..a)
-              trigprob[a] = savec:get("trigprob"..a)
-              low[a] = savec:get("low"..a)
-              octaves[a] = savec:get("octaves"..a)
-              midiVEL[a] = savec:get("midiVEL"..a)
-              midiCH[a] = savec:get("midiCH"..a)
-              release[a] = savec:get("release"..a)
-              attack[a] = savec:get("attack"..a)
-              pw[a] = savec:get("pw"..a)
-              mod2[a] = savec:get("mod2"..a)
-              hz2[a] = savec:get("hz2"..a)
-              amp[a] = savec:get("amp"..a)
-              pan[a] = savec:get("pan"..a)
-              wayfinder[a] = savec:get("wayfinder"..a)
-            end
-            scale1 = music.generate_scale(low[1],mscale[1],octaves[1])
-            scale2 = music.generate_scale(low[2],mscale[2],octaves[2])
-            scale3 = music.generate_scale(low[3],mscale[3],octaves[3])
-            scale4 = music.generate_scale(low[4],mscale[4],octaves[4])
-            scale5 = music.generate_scale(low[5],mscale[5],octaves[5])
-            scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
-            savec:bang()
-            drawnewmap = 1
-            syncbeat()
-          end
-        end
+        selecting = true
+        fileselect.enter(_path.dust .. "code/pixels/pset",load_file)
       end
       if(menupos == 24) then
-        if(savetext == 1) then
-          tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_a.txt")
-          savea:set("mutegroup1",mutegroup[1])
-          savea:set("mutegroup2",mutegroup[2])
-          savea:set("mutegroup3",mutegroup[3])
-          savea:set("mutegroup4",mutegroup[4])
-          savea:set("mutegroup5",mutegroup[5])
-          savea:set("mutegroup6",mutegroup[6])
-          savea:set("pixelon1",pixelon[1])
-          savea:set("pixelon2",pixelon[2])
-          savea:set("pixelon3",pixelon[3])
-          savea:set("pixelon4",pixelon[4])
-          savea:set("pixelon5",pixelon[5])
-          savea:set("pixelon6",pixelon[6])
-          savea:set("pixX1",pixX[1])
-          savea:set("pixX2",pixX[2])
-          savea:set("pixX3",pixX[3])
-          savea:set("pixX4",pixX[4])
-          savea:set("pixX5",pixX[5])
-          savea:set("pixX6",pixX[6])
-          savea:set("pixY1",pixY[1])
-          savea:set("pixY2",pixY[2])
-          savea:set("pixY3",pixY[3])
-          savea:set("pixY4",pixY[4])
-          savea:set("pixY5",pixY[5])
-          savea:set("pixY6",pixY[6])
-          savea:set("pixDX1",pixDX[1])
-          savea:set("pixDX2",pixDX[2])
-          savea:set("pixDX3",pixDX[3])
-          savea:set("pixDX4",pixDX[4])
-          savea:set("pixDX5",pixDX[5])
-          savea:set("pixDX6",pixDX[6])
-          savea:set("pixDY1",pixDY[1])
-          savea:set("pixDY2",pixDY[2])
-          savea:set("pixDY3",pixDY[3])
-          savea:set("pixDY4",pixDY[4])
-          savea:set("pixDY5",pixDY[5])
-          savea:set("pixDY6",pixDY[6])
-          savea:set("stepdiv2",stepdiv[2])
-          savea:set("stepdiv3",stepdiv[3])
-          savea:set("stepdiv4",stepdiv[4])
-          savea:set("stepdiv5",stepdiv[5])
-          savea:set("stepdiv6",stepdiv[6])
-          savea:set("stepdiv1",stepdiv[1])
-          savea:set("trigprob1",trigprob[1])
-          savea:set("trigprob2",trigprob[2])
-          savea:set("trigprob3",trigprob[3])
-          savea:set("trigprob4",trigprob[4])
-          savea:set("trigprob5",trigprob[5])
-          savea:set("trigprob6",trigprob[6])
-          savea:set("styleselect",styleselect)
-          savea:set("tempo",tempo)
-          savea:set("low1",low[1])
-          savea:set("low2",low[2])
-          savea:set("low3",low[3])
-          savea:set("low4",low[4])
-          savea:set("low5",low[5])
-          savea:set("low6",low[6])
-          savea:set("octaves1",octaves[1])
-          savea:set("octaves2",octaves[2])
-          savea:set("octaves3",octaves[3])
-          savea:set("octaves4",octaves[4])
-          savea:set("octaves5",octaves[5])
-          savea:set("octaves6",octaves[6])
-          savea:set("mscale1",mscale[1])
-          savea:set("mscale2",mscale[2])
-          savea:set("mscale3",mscale[3])
-          savea:set("mscale4",mscale[4])
-          savea:set("mscale5",mscale[5])
-          savea:set("mscale6",mscale[6])
-          savea:set("midiVEL1",midiVEL[1])
-          savea:set("midiVEL2",midiVEL[2])
-          savea:set("midiVEL3",midiVEL[3])
-          savea:set("midiVEL4",midiVEL[4])
-          savea:set("midiVEL5",midiVEL[5])
-          savea:set("midiVEL6",midiVEL[6])
-          savea:set("midiCH1",midiCH[1])
-          savea:set("midiCH2",midiCH[2])
-          savea:set("midiCH3",midiCH[3])
-          savea:set("midiCH4",midiCH[4])
-          savea:set("midiCH5",midiCH[5])
-          savea:set("midiCH6",midiCH[6])
-          savea:set("release1",release[1])
-          savea:set("release2",release[2])
-          savea:set("release3",release[3])
-          savea:set("release4",release[4])
-          savea:set("release5",release[5])
-          savea:set("release6",release[6])
-          savea:set("attack1",attack[1])
-          savea:set("attack2",attack[2])
-          savea:set("attack3",attack[3])
-          savea:set("attack4",attack[4])
-          savea:set("attack5",attack[5])
-          savea:set("attack6",attack[6])
-          savea:set("pw1",pw[1])
-          savea:set("pw2",pw[2])
-          savea:set("pw3",pw[3])
-          savea:set("pw4",pw[4])
-          savea:set("pw5",pw[5])
-          savea:set("pw6",pw[6])
-          savea:set("mod21",mod2[1])
-          savea:set("mod22",mod2[2])
-          savea:set("mod23",mod2[3])
-          savea:set("mod24",mod2[4])
-          savea:set("mod25",mod2[5])
-          savea:set("mod26",mod2[6])
-          savea:set("hz21",hz2[1])
-          savea:set("hz22",hz2[2])
-          savea:set("hz23",hz2[3])
-          savea:set("hz24",hz2[4])
-          savea:set("hz25",hz2[5])
-          savea:set("hz26",hz2[6])
-          savea:set("amp1",amp[1])
-          savea:set("amp2",amp[2])
-          savea:set("amp3",amp[3])
-          savea:set("amp4",amp[4])
-          savea:set("amp5",amp[5])
-          savea:set("amp6",amp[6])
-          savea:set("pan1",pan[1])
-          savea:set("pan2",pan[2])
-          savea:set("pan3",pan[3])
-          savea:set("pan4",pan[4])
-          savea:set("pan5",pan[5])
-          savea:set("pan6",pan[6])
-          savea:set("tempsynth1",tempsynth[1])
-          savea:set("tempsynth2",tempsynth[2])
-          savea:set("tempsynth3",tempsynth[3])
-          savea:set("tempsynth4",tempsynth[4])
-          savea:set("tempsynth5",tempsynth[5])
-          savea:set("tempsynth6",tempsynth[6])
-          savea:set("wayfinder1",wayfinder[1])
-          savea:set("wayfinder2",wayfinder[2])
-          savea:set("wayfinder3",wayfinder[3])
-          savea:set("wayfinder4",wayfinder[4])
-          savea:set("wayfinder5",wayfinder[5])
-          savea:set("wayfinder6",wayfinder[6])
-          savea:write("/home/we/dust/code/pixels/savea.pset")
-        end
-        if(savetext == 2) then
-          tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_b.txt")
-          saveb:set("mutegroup1",mutegroup[1])
-          saveb:set("mutegroup2",mutegroup[2])
-          saveb:set("mutegroup3",mutegroup[3])
-          saveb:set("mutegroup4",mutegroup[4])
-          saveb:set("mutegroup5",mutegroup[5])
-          saveb:set("mutegroup6",mutegroup[6])
-          saveb:set("pixelon1",pixelon[1])
-          saveb:set("pixelon2",pixelon[2])
-          saveb:set("pixelon3",pixelon[3])
-          saveb:set("pixelon4",pixelon[4])
-          saveb:set("pixelon5",pixelon[5])
-          saveb:set("pixelon6",pixelon[6])
-          saveb:set("pixX1",pixX[1])
-          saveb:set("pixX2",pixX[2])
-          saveb:set("pixX3",pixX[3])
-          saveb:set("pixX4",pixX[4])
-          saveb:set("pixX5",pixX[5])
-          saveb:set("pixX6",pixX[6])
-          saveb:set("pixY1",pixY[1])
-          saveb:set("pixY2",pixY[2])
-          saveb:set("pixY3",pixY[3])
-          saveb:set("pixY4",pixY[4])
-          saveb:set("pixY5",pixY[5])
-          saveb:set("pixY6",pixY[6])
-          saveb:set("pixDX1",pixDX[1])
-          saveb:set("pixDX2",pixDX[2])
-          saveb:set("pixDX3",pixDX[3])
-          saveb:set("pixDX4",pixDX[4])
-          saveb:set("pixDX5",pixDX[5])
-          saveb:set("pixDX6",pixDX[6])
-          saveb:set("pixDY1",pixDY[1])
-          saveb:set("pixDY2",pixDY[2])
-          saveb:set("pixDY3",pixDY[3])
-          saveb:set("pixDY4",pixDY[4])
-          saveb:set("pixDY5",pixDY[5])
-          saveb:set("pixDY6",pixDY[6])
-          saveb:set("stepdiv2",stepdiv[2])
-          saveb:set("stepdiv3",stepdiv[3])
-          saveb:set("stepdiv4",stepdiv[4])
-          saveb:set("stepdiv5",stepdiv[5])
-          saveb:set("stepdiv6",stepdiv[6])
-          saveb:set("stepdiv1",stepdiv[1])
-          saveb:set("trigprob1",trigprob[1])
-          saveb:set("trigprob2",trigprob[2])
-          saveb:set("trigprob3",trigprob[3])
-          saveb:set("trigprob4",trigprob[4])
-          saveb:set("trigprob5",trigprob[5])
-          saveb:set("trigprob6",trigprob[6])
-          saveb:set("styleselect",styleselect)
-          saveb:set("tempo",tempo)
-          saveb:set("low1",low[1])
-          saveb:set("low2",low[2])
-          saveb:set("low3",low[3])
-          saveb:set("low4",low[4])
-          saveb:set("low5",low[5])
-          saveb:set("low6",low[6])
-          saveb:set("octaves1",octaves[1])
-          saveb:set("octaves2",octaves[2])
-          saveb:set("octaves3",octaves[3])
-          saveb:set("octaves4",octaves[4])
-          saveb:set("octaves5",octaves[5])
-          saveb:set("octaves6",octaves[6])
-          saveb:set("mscale1",mscale[1])
-          saveb:set("mscale2",mscale[2])
-          saveb:set("mscale3",mscale[3])
-          saveb:set("mscale4",mscale[4])
-          saveb:set("mscale5",mscale[5])
-          saveb:set("mscale6",mscale[6])
-          saveb:set("midiVEL1",midiVEL[1])
-          saveb:set("midiVEL2",midiVEL[2])
-          saveb:set("midiVEL3",midiVEL[3])
-          saveb:set("midiVEL4",midiVEL[4])
-          saveb:set("midiVEL5",midiVEL[5])
-          saveb:set("midiVEL6",midiVEL[6])
-          saveb:set("midiCH1",midiCH[1])
-          saveb:set("midiCH2",midiCH[2])
-          saveb:set("midiCH3",midiCH[3])
-          saveb:set("midiCH4",midiCH[4])
-          saveb:set("midiCH5",midiCH[5])
-          saveb:set("midiCH6",midiCH[6])
-          saveb:set("release1",release[1])
-          saveb:set("release2",release[2])
-          saveb:set("release3",release[3])
-          saveb:set("release4",release[4])
-          saveb:set("release5",release[5])
-          saveb:set("release6",release[6])
-          saveb:set("attack1",attack[1])
-          saveb:set("attack2",attack[2])
-          saveb:set("attack3",attack[3])
-          saveb:set("attack4",attack[4])
-          saveb:set("attack5",attack[5])
-          saveb:set("attack6",attack[6])
-          saveb:set("pw1",pw[1])
-          saveb:set("pw2",pw[2])
-          saveb:set("pw3",pw[3])
-          saveb:set("pw4",pw[4])
-          saveb:set("pw5",pw[5])
-          saveb:set("pw6",pw[6])
-          saveb:set("mod21",mod2[1])
-          saveb:set("mod22",mod2[2])
-          saveb:set("mod23",mod2[3])
-          saveb:set("mod24",mod2[4])
-          saveb:set("mod25",mod2[5])
-          saveb:set("mod26",mod2[6])
-          saveb:set("hz21",hz2[1])
-          saveb:set("hz22",hz2[2])
-          saveb:set("hz23",hz2[3])
-          saveb:set("hz24",hz2[4])
-          saveb:set("hz25",hz2[5])
-          saveb:set("hz26",hz2[6])
-          saveb:set("amp1",amp[1])
-          saveb:set("amp2",amp[2])
-          saveb:set("amp3",amp[3])
-          saveb:set("amp4",amp[4])
-          saveb:set("amp5",amp[5])
-          saveb:set("amp6",amp[6])
-          saveb:set("pan1",pan[1])
-          saveb:set("pan2",pan[2])
-          saveb:set("pan3",pan[3])
-          saveb:set("pan4",pan[4])
-          saveb:set("pan5",pan[5])
-          saveb:set("pan6",pan[6])
-          saveb:set("tempsynth1",tempsynth[1])
-          saveb:set("tempsynth2",tempsynth[2])
-          saveb:set("tempsynth3",tempsynth[3])
-          saveb:set("tempsynth4",tempsynth[4])
-          saveb:set("tempsynth5",tempsynth[5])
-          saveb:set("tempsynth6",tempsynth[6])
-          saveb:set("wayfinder1",wayfinder[1])
-          saveb:set("wayfinder2",wayfinder[2])
-          saveb:set("wayfinder3",wayfinder[3])
-          saveb:set("wayfinder4",wayfinder[4])
-          saveb:set("wayfinder5",wayfinder[5])
-          saveb:set("wayfinder6",wayfinder[6])
-          saveb:write("/home/we/dust/code/pixels/saveb.pset")
-        end
-        if(savetext == 3) then
-          tab.save(pixCol,"/home/we/dust/code/pixels/pixel_data_c.txt")
-          savec:set("mutegroup1",mutegroup[1])
-          savec:set("mutegroup2",mutegroup[2])
-          savec:set("mutegroup3",mutegroup[3])
-          savec:set("mutegroup4",mutegroup[4])
-          savec:set("mutegroup5",mutegroup[5])
-          savec:set("mutegroup6",mutegroup[6])
-          savec:set("pixelon1",pixelon[1])
-          savec:set("pixelon2",pixelon[2])
-          savec:set("pixelon3",pixelon[3])
-          savec:set("pixelon4",pixelon[4])
-          savec:set("pixelon5",pixelon[5])
-          savec:set("pixelon6",pixelon[6])
-          savec:set("pixX1",pixX[1])
-          savec:set("pixX2",pixX[2])
-          savec:set("pixX3",pixX[3])
-          savec:set("pixX4",pixX[4])
-          savec:set("pixX5",pixX[5])
-          savec:set("pixX6",pixX[6])
-          savec:set("pixY1",pixY[1])
-          savec:set("pixY2",pixY[2])
-          savec:set("pixY3",pixY[3])
-          savec:set("pixY4",pixY[4])
-          savec:set("pixY5",pixY[5])
-          savec:set("pixY6",pixY[6])
-          savec:set("pixDX1",pixDX[1])
-          savec:set("pixDX2",pixDX[2])
-          savec:set("pixDX3",pixDX[3])
-          savec:set("pixDX4",pixDX[4])
-          savec:set("pixDX5",pixDX[5])
-          savec:set("pixDX6",pixDX[6])
-          savec:set("pixDY1",pixDY[1])
-          savec:set("pixDY2",pixDY[2])
-          savec:set("pixDY3",pixDY[3])
-          savec:set("pixDY4",pixDY[4])
-          savec:set("pixDY5",pixDY[5])
-          savec:set("pixDY6",pixDY[6])
-          savec:set("stepdiv2",stepdiv[2])
-          savec:set("stepdiv3",stepdiv[3])
-          savec:set("stepdiv4",stepdiv[4])
-          savec:set("stepdiv5",stepdiv[5])
-          savec:set("stepdiv6",stepdiv[6])
-          savec:set("stepdiv1",stepdiv[1])
-          savec:set("trigprob1",trigprob[1])
-          savec:set("trigprob2",trigprob[2])
-          savec:set("trigprob3",trigprob[3])
-          savec:set("trigprob4",trigprob[4])
-          savec:set("trigprob5",trigprob[5])
-          savec:set("trigprob6",trigprob[6])
-          savec:set("styleselect",styleselect)
-          savec:set("tempo",tempo)
-          savec:set("low1",low[1])
-          savec:set("low2",low[2])
-          savec:set("low3",low[3])
-          savec:set("low4",low[4])
-          savec:set("low5",low[5])
-          savec:set("low6",low[6])
-          savec:set("octaves1",octaves[1])
-          savec:set("octaves2",octaves[2])
-          savec:set("octaves3",octaves[3])
-          savec:set("octaves4",octaves[4])
-          savec:set("octaves5",octaves[5])
-          savec:set("octaves6",octaves[6])
-          savec:set("mscale1",mscale[1])
-          savec:set("mscale2",mscale[2])
-          savec:set("mscale3",mscale[3])
-          savec:set("mscale4",mscale[4])
-          savec:set("mscale5",mscale[5])
-          savec:set("mscale6",mscale[6])
-          savec:set("midiVEL1",midiVEL[1])
-          savec:set("midiVEL2",midiVEL[2])
-          savec:set("midiVEL3",midiVEL[3])
-          savec:set("midiVEL4",midiVEL[4])
-          savec:set("midiVEL5",midiVEL[5])
-          savec:set("midiVEL6",midiVEL[6])
-          savec:set("midiCH1",midiCH[1])
-          savec:set("midiCH2",midiCH[2])
-          savec:set("midiCH3",midiCH[3])
-          savec:set("midiCH4",midiCH[4])
-          savec:set("midiCH5",midiCH[5])
-          savec:set("midiCH6",midiCH[6])
-          savec:set("release1",release[1])
-          savec:set("release2",release[2])
-          savec:set("release3",release[3])
-          savec:set("release4",release[4])
-          savec:set("release5",release[5])
-          savec:set("release6",release[6])
-          savec:set("attack1",attack[1])
-          savec:set("attack2",attack[2])
-          savec:set("attack3",attack[3])
-          savec:set("attack4",attack[4])
-          savec:set("attack5",attack[5])
-          savec:set("attack6",attack[6])
-          savec:set("pw1",pw[1])
-          savec:set("pw2",pw[2])
-          savec:set("pw3",pw[3])
-          savec:set("pw4",pw[4])
-          savec:set("pw5",pw[5])
-          savec:set("pw6",pw[6])
-          savec:set("mod21",mod2[1])
-          savec:set("mod22",mod2[2])
-          savec:set("mod23",mod2[3])
-          savec:set("mod24",mod2[4])
-          savec:set("mod25",mod2[5])
-          savec:set("mod26",mod2[6])
-          savec:set("hz21",hz2[1])
-          savec:set("hz22",hz2[2])
-          savec:set("hz23",hz2[3])
-          savec:set("hz24",hz2[4])
-          savec:set("hz25",hz2[5])
-          savec:set("hz26",hz2[6])
-          savec:set("amp1",amp[1])
-          savec:set("amp2",amp[2])
-          savec:set("amp3",amp[3])
-          savec:set("amp4",amp[4])
-          savec:set("amp5",amp[5])
-          savec:set("amp6",amp[6])
-          savec:set("pan1",pan[1])
-          savec:set("pan2",pan[2])
-          savec:set("pan3",pan[3])
-          savec:set("pan4",pan[4])
-          savec:set("pan5",pan[5])
-          savec:set("pan6",pan[6])
-          savec:set("tempsynth1",tempsynth[1])
-          savec:set("tempsynth2",tempsynth[2])
-          savec:set("tempsynth3",tempsynth[3])
-          savec:set("tempsynth4",tempsynth[4])
-          savec:set("tempsynth5",tempsynth[5])
-          savec:set("tempsynth6",tempsynth[6])
-          savec:set("wayfinder1",wayfinder[1])
-          savec:set("wayfinder2",wayfinder[2])
-          savec:set("wayfinder3",wayfinder[3])
-          savec:set("wayfinder4",wayfinder[4])
-          savec:set("wayfinder5",wayfinder[5])
-          savec:set("wayfinder6",wayfinder[6])
-          savec:write("/home/we/dust/code/pixels/savec.pset")
-        end
+        textentry.enter(textenter,default_text,"Enter Save Name",check)
+      end
+      if(menupos == 25 and currentname ~= nil) then
+        saveit()
       end
     end
   end
@@ -3161,7 +3037,7 @@ function key(n,id)
             end
           end
         end
-        for mm=1,4 do
+        for mm=1,16 do
           if(pixelon[1] == 0) then
             midi_signals_out[mm]:note_off(notes1[1],nil,midiCH[1])
             table.remove(notes1,1)
@@ -3203,7 +3079,7 @@ function key(n,id)
             end
           end
         end
-        for mm=1,4 do
+        for mm=1,16 do
           if(pixelon[1] == 0) then
             midi_signals_out[mm]:note_off(notes1[1],nil,midiCH[1])
             table.remove(notes1,1)
@@ -3212,15 +3088,15 @@ function key(n,id)
             midi_signals_out[mm]:note_off(notes2[1],nil,midiCH[2])
             table.remove(notes2,1)
           end
-          if(pixelon[2] == 0) then
+          if(pixelon[3] == 0) then
             midi_signals_out[mm]:note_off(notes3[1],nil,midiCH[3])
             table.remove(notes3,1)
           end
-          if(pixelon[2] == 0) then
+          if(pixelon[4] == 0) then
             midi_signals_out[mm]:note_off(notes4[1],nil,midiCH[4])
             table.remove(notes4,1)
           end
-          if(pixelon[2] == 0) then
+          if(pixelon[5] == 0) then
             midi_signals_out[mm]:note_off(notes5[1],nil,midiCH[5])
             table.remove(notes5,1)
           end
@@ -3230,6 +3106,19 @@ function key(n,id)
           end
         end
       end
+    end
+  end
+  if(page == 7) then
+    if(n == 3 and id == 1) then
+              
+        tab.save(macros,"/home/we/dust/code/pixels/macros.txt")
+        macros:set("CC"..menupos,macroCC[menupos])
+        for i=1,6 do
+          macros:set("scale"..menupos.."_"..i,mscale[i])
+          macros:set("root"..menupos.."_"..i,low[i])
+          macros:set("oct"..menupos.."_"..i,octaves[i])
+        end  
+        macros:write("/home/we/dust/code/pixels/macros.pset")
     end
   end
 end
@@ -3351,14 +3240,14 @@ function play(note,who)
     newrange = scale1[#scale1] - scale1[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale1[1])
     table.insert(notes1,1,music.snap_note_to_array (note, scale1))
-    if(#notes1 > 1) then
-      for mm=1,4 do
+    while(#notes1 > 1) do
+      for mm=1,16 do
         midi_signals_out[mm]:note_off(notes1[2],nil,midiCH[who])
       end
       table.remove(notes1,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale1)))
-    for mm=1,4 do
+    for mm=1,16 do
       midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale1),actualVEL,midiCH[who])
     end
   end
@@ -3366,14 +3255,14 @@ function play(note,who)
     newrange = scale2[#scale2] - scale2[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale2[1])
     table.insert(notes2,1,music.snap_note_to_array (note, scale2))
-    if(#notes2 > 1) then
-      for mm=1,4 do
+    while(#notes2 > 1) do
+      for mm=1,16 do
         midi_signals_out[mm]:note_off(notes2[2],nil,midiCH[who])
       end
       table.remove(notes2,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale2)))
-    for mm = 1,4 do
+    for mm = 1,16 do
       midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale2),actualVEL,midiCH[who])
     end
   end
@@ -3381,14 +3270,14 @@ function play(note,who)
     newrange = scale3[#scale3] - scale3[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale3[1])
     table.insert(notes3,1,music.snap_note_to_array (note, scale3))
-    if(#notes3 > 1) then
-      for mm=1,4 do
+    while(#notes3 > 1) do
+      for mm=1,16 do
         midi_signals_out[mm]:note_off(notes3[2],nil,midiCH[who])
       end
       table.remove(notes3,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale3)))
-    for mm=1,4 do
+    for mm=1,16 do
       midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale3),actualVEL,midiCH[who])
     end
   end
@@ -3396,14 +3285,14 @@ function play(note,who)
     newrange = scale4[#scale4] - scale4[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale4[1])
     table.insert(notes4,1,music.snap_note_to_array (note, scale4))
-    if(#notes4 > 1) then
-      for mm=1,4 do
+    while(#notes4 > 1) do
+      for mm=1,16 do
         midi_signals_out[mm]:note_off(notes4[2],nil,midiCH[who])
       end
       table.remove(notes4,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale4)))
-    for mm=1,4 do
+    for mm=1,16 do
       midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale4),actualVEL,midiCH[who])
     end  
   end
@@ -3411,14 +3300,14 @@ function play(note,who)
     newrange = scale5[#scale5] - scale5[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale5[1])
     table.insert(notes5,1,music.snap_note_to_array (note, scale5))
-    if(#notes5 > 1) then
-      for mm=1,4 do
+    while(#notes5 > 1) do
+      for mm=1,16 do
         midi_signals_out[mm]:note_off(notes5[2],nil,midiCH[who])
       end
       table.remove(notes5,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale5)))
-    for mm=1,4 do
+    for mm=1,16 do
       midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale5),actualVEL,midiCH[who])
     end  
   end
@@ -3426,14 +3315,14 @@ function play(note,who)
     newrange = scale6[#scale6] - scale6[1]
     note = math.floor((((note - 1)* newrange) / oldrange) + scale6[1])
     table.insert(notes6,1,music.snap_note_to_array (note, scale6))
-    if(#notes6 > 1) then
-      for mm=1,4 do
+    while(#notes6 > 1) do
+      for mm=1,16 do
         midi_signals_out[mm]:note_off(notes6[2],nil,midiCH[who])
       end
       table.remove(notes6,2)
     end
     engine.hz(music.note_num_to_freq(music.snap_note_to_array (note, scale6)))
-    for mm=1,4 do
+    for mm=1,16 do
       midi_signals_out[mm]:note_on(music.snap_note_to_array (note, scale6),actualVEL,midiCH[who])
     end  
   end
@@ -3442,7 +3331,7 @@ end
 --let's look at twiddled knobs
 function enc(n,delta)
   if (n == 1 and menumode == 1) then
-    page = util.clamp(page + delta,2,5)
+    page = util.clamp(page + delta,2,7)
     lastpage = page
     menupos = 1
     styleselecttemp = styleselect
@@ -3549,7 +3438,10 @@ function enc(n,delta)
   end
   if (page == 2) then
     if(n == 2) then
-      menupos = util.clamp(menupos + delta,1,24)
+      menupos = util.clamp(menupos + delta,1,25)
+      if (currentname == nil and menupos == 25) then
+        menupos = 24
+      end
       lastmenupos = menupos
       if(menupos < 1 or menupos > 8) then
         scalefade = 0
@@ -3764,12 +3656,7 @@ function enc(n,delta)
         octaves[6] = octavesmain
         scale6 = music.generate_scale(low[6],mscale[6],octaves[6])
       end
-      if (menupos == 23) then
-        loadtext = util.clamp(loadtext+delta,1,#loading)
-      end
-      if (menupos == 24) then
-        savetext = util.clamp(savetext+delta,1,#saving)
-      end
+
     end
   end
   if (page == 3) then
@@ -3805,7 +3692,7 @@ function enc(n,delta)
       if (menupos == 9) then
         pixelon[1] = util.clamp(pixelon[1]+delta,0,1)
         if(pixelon[1] == 0) then
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes1[1],nil,midiCH[1])
           end
           table.remove(notes1,1)
@@ -3814,7 +3701,7 @@ function enc(n,delta)
       if (menupos == 10) then
         pixelon[2] = util.clamp(pixelon[2]+delta,0,1)
         if(pixelon[2] == 0) then
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes2[1],nil,midiCH[2])
           end
           table.remove(notes2,1)
@@ -3823,7 +3710,7 @@ function enc(n,delta)
       if (menupos == 11) then
         pixelon[3] = util.clamp(pixelon[3]+delta,0,1)
         if(pixelon[3] == 0) then
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes3[1],nil,midiCH[3])
           end
           table.remove(notes3,1)
@@ -3832,7 +3719,7 @@ function enc(n,delta)
       if (menupos == 12) then
         pixelon[4] = util.clamp(pixelon[4]+delta,0,1)
         if(pixelon[4] == 0) then
-          formm=1,4 do
+          formm=1,16 do
             midi_signals_out[mm]:note_off(notes4[1],nil,midiCH[4])
           end
           table.remove(notes4,1)
@@ -3841,7 +3728,7 @@ function enc(n,delta)
       if (menupos == 13) then
         pixelon[5] = util.clamp(pixelon[5]+delta,0,1)
         if(pixelon[5] == 0) then
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes5[1],nil,midiCH[5])
           end
           table.remove(notes5,1)
@@ -3850,7 +3737,7 @@ function enc(n,delta)
       if (menupos == 14) then
         pixelon[6] = util.clamp(pixelon[6]+delta,0,1)
         if(pixelon[6] == 0) then
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes6[1],nil,midiCH[6])
           end
           table.remove(notes6,1)
@@ -3918,7 +3805,7 @@ function enc(n,delta)
       end
       if (menupos == 30) then
         for a=1,#notes1 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes1[a],0,midiCH[1])
           end        
         end
@@ -3930,7 +3817,7 @@ function enc(n,delta)
       
       if (menupos == 31) then
       for a=1,#notes2 do
-        for mm=1,4 do
+        for mm=1,16 do
           midi_signals_out[mm]:note_off(notes2[a],0,midiCH[2])
         end
       end
@@ -3941,7 +3828,7 @@ function enc(n,delta)
       end
       if (menupos == 32) then
         for a=1,#notes3 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes3[a],0,midiCH[3])
           end        
         end
@@ -3952,7 +3839,7 @@ function enc(n,delta)
       end
       if (menupos == 33) then
         for a=1,#notes4 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes4[a],0,midiCH[4])
           end
         end
@@ -3963,7 +3850,7 @@ function enc(n,delta)
       end
       if (menupos == 34) then
         for a=1,#notes5 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes5[a],0,midiCH[5])
           end        
         end
@@ -3974,7 +3861,7 @@ function enc(n,delta)
       end
       if (menupos == 35) then
         for a=1,#notes6 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes6[a],0,midiCH[6])
           end
         end
@@ -3986,7 +3873,7 @@ function enc(n,delta)
       if (menupos == 36) then
         midiCHmain = util.clamp((midiCHmain) + delta, 1,16)
         for a=1,#notes1 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes1[a],0,midiCH[1])
           end
         end
@@ -3994,7 +3881,7 @@ function enc(n,delta)
           table.remove(notes1,1)
         end
         for a=1,#notes2 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes2[a],0,midiCH[2])
           end
         end
@@ -4002,7 +3889,7 @@ function enc(n,delta)
           table.remove(notes2,1)
         end
         for a=1,#notes3 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes3[a],0,midiCH[3])
           end      
         end
@@ -4010,7 +3897,7 @@ function enc(n,delta)
           table.remove(notes3,1)
         end
         for a=1,#notes4 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes4[a],0,midiCH[4])
           end        
         end
@@ -4018,7 +3905,7 @@ function enc(n,delta)
           table.remove(notes4,1)
         end
         for a=1,#notes5 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes5[a],0,midiCH[5])
           end
         end
@@ -4026,7 +3913,7 @@ function enc(n,delta)
           table.remove(notes5,1)
         end
         for a=1,#notes6 do
-          for mm=1,4 do
+          for mm=1,16 do
             midi_signals_out[mm]:note_off(notes6[a],0,midiCH[6])
           end        
         end
@@ -4144,7 +4031,7 @@ function enc(n,delta)
       end
     end
   end
-   if (page == 5) then
+  if (page == 5) then
     if(n == 2) then
       menupos = util.clamp(menupos + delta,1,28)
       lastmenupos = menupos
@@ -4249,6 +4136,53 @@ function enc(n,delta)
           hz2[a]=temphz2
         end
       end
+    end
+  end
+  if (page == 6) then
+    if(n == 2) then
+      menupos = util.clamp(menupos + delta,1,4)
+      lastmenupos = menupos
+    end
+    if(menupos == 1 and n == 3) then
+      if(delta > 0) then
+        sendtrans = 1
+      end
+      if(delta < 0) then
+        sendtrans = 0
+      end
+    end
+    if(menupos == 2 and n == 3) then
+      if(delta > 0) then
+        rectrans = 1
+      end
+      if(delta < 0) then
+        rectrans = 0
+      end
+    end
+    if(menupos == 3 and n == 3) then
+      if(delta > 0) then
+        notetrans = 1
+      end
+      if(delta < 0) then
+        notetrans = 0
+      end
+    end
+    if(menupos == 4 and n == 3) then
+      if(delta > 0) then
+        cctrans = 1
+      end
+      if(delta < 0) then
+        cctrans = 0
+      end
+    end
+  end
+  if (page == 7) then
+    if(n==2) then
+      menupos = util.clamp(menupos + delta,1,12)
+      lastmenupos = menupos
+    end
+    if(n==3) then
+      macroCC[menupos] = util.clamp(macroCC[menupos]+delta,1,127)
     end
   end
 end
