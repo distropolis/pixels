@@ -1234,6 +1234,14 @@ function menuwatcher()
   end
 end
 
+function string_to_table(s)
+  return table.pack(string.byte(s, 0, string.len(s)))
+end
+
+function table_to_string(t)
+  return string.char(table.unpack(t))
+end
+
 
 --oh god ... this redraw function is outta control ... but somehow still works
 function redraw()
@@ -1247,7 +1255,7 @@ function redraw()
       rc = 0
     end
     if(drawing == 0 and drawnewmap == 0) then
-      screen.display_png ("/home/we/dust/code/pixels/pixels.png", 0, 0)
+      screen.poke(0, 0, 128, 64, table_to_string(tab.load("home/we/dust/code/pixels/pixels.data")))
     end
     if(drawnewmap == 1) then
       for y=0,64 do
@@ -1257,8 +1265,7 @@ function redraw()
           screen.fill(0,0,0)
         end
       end
-      _norns.screen_export_png("/home/we/dust/code/pixels/pixels.png")
-      screen.display_png ("/home/we/dust/code/pixels/pixels.png", 0, 0)
+      tab.save(string_to_table(screen.peek(0, 0, 128, 64)), "home/we/dust/code/pixels/pixels.data")
       drawnewmap = 0
     end
     if(drawing == 1) then
